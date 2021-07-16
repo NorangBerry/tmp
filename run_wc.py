@@ -6,7 +6,6 @@ Created on Tue Jun 15 21:47:00 2021
 """
 
 
-from const import ROOT_PATH
 import random
 import os 
 os.environ["CUDA_VISIBLE_DEVICES"]='0'
@@ -20,6 +19,8 @@ import pickle
 from sklearn.metrics.pairwise import cosine_similarity
 from functions import normalization_ops, wc_evaluation, wLoss, makedirs
 from model import BaseModel
+from pathlib import Path
+ROOT_PATH = Path(__file__).resolve().parent.resolve().parent
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 def load_IEMOCAP_WC(train_path, fold, c_name, phase='train'):
     train_filename = "%s.pickle"  %(train_path)
@@ -151,24 +152,17 @@ n_patience = 5#5#5
 batch_size = 32
 lr = 2e-4
 n_epochs = 100
-DATA_PATH = "E:/FEW_DBs/"
+# ROOT_PATH = "E:/FEW_DBs/" #"X:disk1/Young/datasets/FEW_DBs/"
+DATA_PATH = ROOT_PATH
 FEAT_NAME = "emobase2010"
 Model_NAME = 'WC0716_JY'
 #train_dataset_list = ['DEMoS']#['IEMOCAP']
-# 'CREMA-D','IEMOCAP','MSP4IMPROV','MSPPodcast'
+# 'CREMA-D','IEMOCAP','MSPIMPROV','MSPPodcast'
 DATASET_LIST = list(np.sort(['CREMA-D'])) # ['DEMoS']# ['CREMA-D','IEMOCAP','MSPIMPROV']
 DO_mode = 'train' # test train
-# WA_train = []
-# WA_valid = []
-# WA_test  = []
-# UA_train = []
 UA_valid = []
 UA_test  = []
-# EUC_train = []
-# EUC_valid = []
 EUC_test  = []
-# COS_train = []
-# COS_valid = []
 COS_test  = []
 for DATASET in DATASET_LIST:
     train_dataset_list = [DATASET] # DATASET_LIST # 
@@ -176,65 +170,54 @@ for DATASET in DATASET_LIST:
     if 'WC' in RUN_Option:
         n_fold = 10
         if 'MSPIMPROV' == DATASET:
-            n_fold = 12#12
+            n_fold = 12
         elif 'CREMA-D' == DATASET:
             n_fold = 1
         fold_UA_valid = []
         fold_UA_test = []
-        # fold_EUC_valid = []
         fold_EUC_test = []
-        fold_COS_valid = []
         fold_COS_test = []
         for fold in range(n_fold):
             print('******** Dataset Loading ***********')
-            print('***SRC %s  FOLD %d***********' %(train_dataset_list, fold))
-            x_train = []
-            y_train = []            
-            x_valid = []
-            y_valid = []
-            x_test  = []
-            y_test  = []
-            ys_test  = []
-            ls_train = []
+            print('***SRC %s  FOLD %d***********' %(DATASET, fold))
             tr_n_samples = 100000
-            for D_tmp in train_dataset_list:
-                data_path = os.path.join(DATA_PATH+D_tmp, FEAT_NAME)
-                x_tr_tmp, y_tr_tmp, x_vl_tmp, y_vl_tmp, x_te_tmp, y_te_tmp, ys_te_tmp = load_emotion_corpus_WC(D_tmp, data_path,fold)
-                x_train.append(x_tr_tmp)
-                y_train.append(y_tr_tmp)
-                x_valid.append(x_vl_tmp)
-                y_valid.append(y_vl_tmp)
-                x_test.append(x_te_tmp)
-                y_test.append(y_te_tmp)
-                ys_test.append(ys_te_tmp)
-                if tr_n_samples > len(y_tr_tmp):
-                    tr_n_samples = len(y_tr_tmp)
-            for dn, yl in enumerate (y_train):
-                ls_train.append(np.eye(4)[yl])
+            data_path = os.path.join(os.path.join(DATA_PATH,DATASET), FEAT_NAME)
+            x_tr_tmp, y_tr_tmp, x_vl_tmp, y_vl_tmp, x_te_tmp, y_te_tmp, ys_te_tmp = load_emotion_corpus_WC(DATASET, data_path,fold)
+            x_train = [x_tr_tmp]
+            y_train = [y_tr_tmp]
+            x_valid = [x_vl_tmp]
+            y_valid = [y_vl_tmp]
+            x_test = [x_te_tmp]
+            y_test = [y_te_tmp]
+            ys_test = [ys_te_tmp]
+            if tr_n_samples > len(y_tr_tmp):
+                tr_n_samples = len(y_tr_tmp)
+
+            ls_train = [np.eye(4)[y_train]]
             n_minibatch = int(np.floor(tr_n_samples/batch_size))
             x_tmp = np.concatenate(x_train)
             feat_mu = np.mean(x_tmp,axis=0)
             feat_st = np.std(x_tmp, axis=0)
             
             path_dbs = ''
-            n_domain = len(train_dataset_list)
-            for dn, D_tmp in enumerate (train_dataset_list):
-                x_train[dn]  = normalization_ops(feat_mu, feat_st, x_train[dn])
-                x_valid[dn]  = normalization_ops(feat_mu, feat_st, x_valid[dn])
-                x_test[dn]   = normalization_ops(feat_mu, feat_st, x_test[dn])
-                path_dbs += D_tmp
+            n_domain = 1
+
+            x_train[0]  = normalization_ops(feat_mu, feat_st, x_train[0])
+            x_valid[0]  = normalization_ops(feat_mu, feat_st, x_valid[0])
+            x_test[0]   = normalization_ops(feat_mu, feat_st, x_test[0])
+            path_dbs += DATASET
 
             for seed in range(n_seeds):
-                best_UA_valid = [0.]*len(train_dataset_list)
-                best_UA_test  = [0.]*len(train_dataset_list)
-                best_EUC_test  = [0.]*len(train_dataset_list)
-                best_COS_test  = [0.]*len(train_dataset_list)
+                best_UA_valid = [0.]
+                best_UA_test  = [0.]
+                best_EUC_test  = [0.]
+                best_COS_test  = [0.]
                 if DO_mode == 'train':
                     print('SEED %d start' %(seed))
                     random.seed(seed)
                     np.random.seed(seed)
                     torch.manual_seed(seed)
-                    my_net = BaseModel(domains=n_domain)
+                    my_net = BaseModel()
     
                     for p in my_net.parameters():
                         p.requires_grad = True
@@ -251,28 +234,16 @@ for DATASET in DATASET_LIST:
     
                     for epoch in range(n_epochs):
                         # Start an epoch (training)
-                        rd_arr = []
+                        rd_arr = [random.sample(range(len(y_train[0])),tr_n_samples)]
                         m_train= []
-                        for dn, Dom in enumerate(train_dataset_list):
-                            rd_arr.append(random.sample(range(len(y_train[dn])),tr_n_samples))
                         my_net.train()
-                        
                         for bc in range(n_minibatch):
                             optimizer.zero_grad()
-                            L_tot = 0.
-                            x_train_batch = []
-                            y_train_batch = []
-                            ls_train_batch = []
-                            d_train_batch = []
-                            for dn in range(n_domain): 
-                                x_train_batch.append(torch.Tensor(x_train[dn][rd_arr[dn][bc*batch_size:batch_size*(bc+1)]]))
-                                y_train_batch.append(torch.Tensor(y_train[dn][rd_arr[dn][bc*batch_size:batch_size*(bc+1)]]))
-                                ls_train_batch.append(torch.Tensor(ls_train[dn][rd_arr[dn][bc*batch_size:batch_size*(bc+1)]]))
-                                d_train_batch.append(torch.Tensor(np.ones(batch_size,)*dn))
-                            x_train_batch = torch.cat(x_train_batch,dim=0).to(device).cuda()
-                            y_train_batch = torch.cat(y_train_batch,dim=0).to(device).long().cuda()
-                            ls_train_batch = torch.cat(ls_train_batch,dim=0).to(device).long().cuda()
-                            d_train_batch = torch.cat(d_train_batch,dim=0).to(device).long().cuda()
+
+                            x_train_batch = torch.Tensor(x_train[0][rd_arr[0][bc*batch_size:batch_size*(bc+1)]]).to(device).cuda()
+                            y_train_batch = torch.Tensor(y_train[0][rd_arr[0][bc*batch_size:batch_size*(bc+1)]]).to(device).long().cuda()
+                            ls_train_batch = torch.Tensor(ls_train[0][rd_arr[0][bc*batch_size:batch_size*(bc+1)]]).to(device).long().cuda()
+                            d_train_batch = torch.Tensor(np.ones(batch_size,)*0).to(device).long().cuda()
                             
                             class_output, _, _ = my_net(input_data=x_train_batch, alpha=0)
                             class_logit_list = []
@@ -294,7 +265,7 @@ for DATASET in DATASET_LIST:
                                 if p is None:
                                     continue
                                 my_loss.alpha     =  w #None
-                                L_total += my_loss(p, l, ls) /float(len(train_dataset_list))   
+                                L_total += my_loss(p, l, ls) /1.0
                             L_total.backward()
                             optimizer.step()
                             del x_train_batch, y_train_batch, d_train_batch 
@@ -302,11 +273,10 @@ for DATASET in DATASET_LIST:
                         my_net.eval()
                         tmp_wa_list = []
                         tmp_ua_list = []
-                        for dn, Dom in enumerate(train_dataset_list):
-                            tmp_wa, tmp_ua = wc_evaluation(my_net, 
-                                            [x_train[dn], x_valid[dn]], [y_train[dn], y_valid[dn]], 0, device)
-                            tmp_wa_list.append(tmp_wa)
-                            tmp_ua_list.append(tmp_ua)
+                        tmp_wa, tmp_ua = wc_evaluation(my_net, 
+                                        [x_train[0], x_valid[0]], [y_train[0], y_valid[0]], 0, device)
+                        tmp_wa_list= [tmp_wa]
+                        tmp_ua_list= [tmp_ua]
                         tmp_wa = np.mean(tmp_wa_list,0)
                         tmp_ua = np.mean(tmp_ua_list,0)
                         tmp_score = tmp_ua[1] 
@@ -317,11 +287,10 @@ for DATASET in DATASET_LIST:
                             best_score = tmp_score
                             best_UA = tmp_ua[1]
     
-                            for dn, Dom in enumerate(train_dataset_list):
-                                _, tmp_ua = wc_evaluation(my_net, [x_valid[dn], x_test[dn]], \
-                                                          [y_valid[dn],y_test[dn]], 0, device)
-                                best_UA_valid[dn] = tmp_ua[0]
-                                best_UA_test[dn] = tmp_ua[-1]
+                            _, tmp_ua = wc_evaluation(my_net, [x_valid[0], x_test[0]], \
+                                                        [y_valid[0],y_test[0]], 0, device)
+                            best_UA_valid[0] = tmp_ua[0]
+                            best_UA_test[0] = tmp_ua[-1]
                             print("new_acc!")
                             makedirs('%s/%s' %(train_path, Model_NAME))
                             torch.save(my_net, '%s/%s/WC_fold%s_seed%s.pth' %(train_path, Model_NAME, str(fold), str(seed)))
@@ -335,17 +304,17 @@ for DATASET in DATASET_LIST:
                     my_net = torch.load('%s/%s/WC_fold%s_seed%s.pth' %(train_path, Model_NAME, str(fold), str(seed))) 
                     my_net.eval()
                     
-                    for dn, Dom in enumerate(train_dataset_list):
-                        _, tmp_ua = wc_evaluation(my_net, [x_valid[dn], x_test[dn]], \
-                                                              [y_valid[dn],y_test[dn]], 0, device)
-                        best_UA_valid[dn] = tmp_ua[0]
-                        best_UA_test[dn] = tmp_ua[-1]
+                    _, tmp_ua = wc_evaluation(my_net, [x_valid[0], x_test[0]], \
+                                                            [y_valid[0],y_test[0]], 0, device)
+                    best_UA_valid[0] = tmp_ua[0]
+                    best_UA_test[0] = tmp_ua[-1]
+                
+                    x_eval = torch.Tensor(x_test[0]).to(device).cuda()
+                    class_output, _, _ = my_net(x_eval, alpha=0)
+                    class_output = F.softmax(class_output,1)
+                    best_EUC_test[0] = np.sqrt(((np.array(class_output.tolist())-ys_test[0])**2).sum(axis=-1)).mean()
+                    best_COS_test[0] = cosine_similarity(np.array(class_output.tolist()),ys_test[0]).diagonal().mean()
                     
-                        x_eval = torch.Tensor(x_test[dn]).to(device).cuda()
-                        class_output, _, _ = my_net(x_eval, alpha=0)
-                        class_output = F.softmax(class_output,1)
-                        best_EUC_test[dn] = np.sqrt(((np.array(class_output.tolist())-ys_test[dn])**2).sum(axis=-1)).mean()
-                        best_COS_test[dn] = cosine_similarity(np.array(class_output.tolist()),ys_test[dn]).diagonal().mean()
                     fold_EUC_test.append(best_EUC_test)
                     fold_COS_test.append(best_COS_test)
         
@@ -358,7 +327,7 @@ for DATASET in DATASET_LIST:
         UA_test.append(fold_UA_test)
         EUC_test.append(fold_EUC_test)
         COS_test.append(fold_COS_test)
-        print("WC Domain [%s] valid UA: %.2f-%.4f test UA %.2f-%.4f" %(Dom, np.mean(UA_valid[-1]),np.std(UA_valid[-1]),
+        print("WC Domain [%s] valid UA: %.2f-%.4f test UA %.2f-%.4f" %(DATASET, np.mean(UA_valid[-1]),np.std(UA_valid[-1]),
                                                             np.mean(UA_test[-1]),np.std(UA_test[-1])))
 '''
 for dn, Dom in enumerate(DATASET_LIST):

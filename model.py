@@ -9,8 +9,11 @@ import torch.nn as nn
 from functions import ReverseLayerF
 
 class BaseModel(nn.Module):
-    def __init__(self, domains=1):
+    def __init__(self):
         super(BaseModel, self).__init__()
+        self._build()
+
+    def _build(self):
         self.feature = nn.Sequential()
         self.feature.add_module('f_fc1', nn.Linear(1582, 1024))
         #self.feature.add_module('f_bn1', nn.BatchNorm1d(1024))
@@ -48,7 +51,7 @@ class BaseModel(nn.Module):
         self.domain_classifier.add_module('d_fc3', nn.Linear(512, 1))#domains)) 
         self.domain_classifier.add_module('d_sigmoid', nn.Sigmoid())#(dim=1))
         #self.domain_classifier.add_module('d_softmax', nn.Softmax(dim=1))
-        
+
     def forward(self, input_data, alpha):
         #input_data = input_data.expand(input_data.data.shape[0], 1582)
         input_data = input_data.view(input_data.data.shape[0], 1582)
