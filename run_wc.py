@@ -147,8 +147,8 @@ def load_emotion_corpus_WC(corpus, train_path, fold):
 
 # DB Loading problem!
 RUN_Option = 'WC'
-n_seeds = 5#5
-n_patience = 5#5#5
+n_seeds = 5
+n_patience = 5
 batch_size = 32
 lr = 2e-4
 n_epochs = 100
@@ -181,34 +181,20 @@ for DATASET in DATASET_LIST:
         for fold in range(n_fold):
             print('******** Dataset Loading ***********')
             print('***SRC %s  FOLD %d***********' %(DATASET, fold))
-            tr_n_samples = 100000
             data_path = os.path.join(os.path.join(DATA_PATH,DATASET), FEAT_NAME)
-            x_tr_tmp, y_tr_tmp, x_vl_tmp, y_vl_tmp, x_te_tmp, y_te_tmp, ys_te_tmp = load_emotion_corpus_WC(DATASET, data_path,fold)
+            x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test = load_emotion_corpus_WC(DATASET, data_path,fold)
 
-            x_train = x_tr_tmp
-            y_train = y_tr_tmp
-            x_valid = x_vl_tmp
-            y_valid = y_vl_tmp
-            x_test = x_te_tmp
-            y_test = y_te_tmp
-            ys_test = ys_te_tmp
-
-            if tr_n_samples > len(y_tr_tmp):
-                tr_n_samples = len(y_tr_tmp)
+            tr_n_samples = min(100000,len(y_train))
 
             ls_train = np.eye(4)[y_train]
             n_minibatch = int(np.floor(tr_n_samples/batch_size))
-            x_tmp = x_train
-            feat_mu = np.mean(x_tmp,axis=0)
-            feat_st = np.std(x_tmp, axis=0)
-            
-            path_dbs = ''
-            n_domain = 1
 
+            feat_mu = np.mean(x_train,axis=0)
+            feat_st = np.std(x_train, axis=0)
+            
             x_train  = normalization_ops(feat_mu, feat_st, x_train)
             x_valid  = normalization_ops(feat_mu, feat_st, x_valid)
             x_test   = normalization_ops(feat_mu, feat_st, x_test)
-            path_dbs += DATASET
 
             for seed in range(n_seeds):
                 best_UA_valid = 0.
@@ -221,9 +207,6 @@ for DATASET in DATASET_LIST:
                     np.random.seed(seed)
                     torch.manual_seed(seed)
                     my_net = BaseModel()
-    
-                    for p in my_net.parameters():
-                        p.requires_grad = True
     
                     # setup optimizer
                     optimizer = optim.Adam(my_net.parameters(), lr=lr)
@@ -238,7 +221,6 @@ for DATASET in DATASET_LIST:
                     for epoch in range(n_epochs):
                         # Start an epoch (training)
                         rd_arr = random.sample(range(len(y_train)),tr_n_samples)
-                        m_train= []
                         my_net.train()
                         for bc in range(n_minibatch):
                             optimizer.zero_grad()
@@ -274,14 +256,9 @@ for DATASET in DATASET_LIST:
                             del x_train_batch, y_train_batch, d_train_batch 
                         # Start an epoch (validation)
                         my_net.eval()
-                        tmp_wa_list = []
-                        tmp_ua_list = []
                         tmp_wa, tmp_ua = wc_evaluation(my_net, 
                                         [x_train, x_valid], [y_train, y_valid], 0, device)
-                        tmp_wa_list= [tmp_wa]
-                        tmp_ua_list= [tmp_ua]
-                        tmp_wa = np.mean(tmp_wa_list,0)
-                        tmp_ua = np.mean(tmp_ua_list,0)
+                        
                         tmp_score = tmp_ua[1] 
                         
                         print("[Tra] wa: %.2f ua: %.2f [Val] wa: %.2f ua: %.2f" % (tmp_wa[0],tmp_ua[0], tmp_wa[1],tmp_ua[1]))

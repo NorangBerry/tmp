@@ -12,6 +12,8 @@ class BaseModel(nn.Module):
     def __init__(self):
         super(BaseModel, self).__init__()
         self._build()
+        for p in self.parameters():
+            p.requires_grad = True
 
     def _build(self):
         self.feature = nn.Sequential()
