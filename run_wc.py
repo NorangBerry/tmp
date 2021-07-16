@@ -164,6 +164,7 @@ UA_valid = []
 UA_test  = []
 EUC_test  = []
 COS_test  = []
+
 for DATASET in DATASET_LIST:
     train_dataset_list = [DATASET] # DATASET_LIST # 
     train_path = os.path.join(os.path.join(ROOT_PATH,DATASET), FEAT_NAME)
@@ -183,35 +184,37 @@ for DATASET in DATASET_LIST:
             tr_n_samples = 100000
             data_path = os.path.join(os.path.join(DATA_PATH,DATASET), FEAT_NAME)
             x_tr_tmp, y_tr_tmp, x_vl_tmp, y_vl_tmp, x_te_tmp, y_te_tmp, ys_te_tmp = load_emotion_corpus_WC(DATASET, data_path,fold)
-            x_train = [x_tr_tmp]
-            y_train = [y_tr_tmp]
-            x_valid = [x_vl_tmp]
-            y_valid = [y_vl_tmp]
-            x_test = [x_te_tmp]
-            y_test = [y_te_tmp]
-            ys_test = [ys_te_tmp]
+
+            x_train = x_tr_tmp
+            y_train = y_tr_tmp
+            x_valid = x_vl_tmp
+            y_valid = y_vl_tmp
+            x_test = x_te_tmp
+            y_test = y_te_tmp
+            ys_test = ys_te_tmp
+
             if tr_n_samples > len(y_tr_tmp):
                 tr_n_samples = len(y_tr_tmp)
 
-            ls_train = [np.eye(4)[y_train]]
+            ls_train = np.eye(4)[y_train]
             n_minibatch = int(np.floor(tr_n_samples/batch_size))
-            x_tmp = np.concatenate(x_train)
+            x_tmp = x_train
             feat_mu = np.mean(x_tmp,axis=0)
             feat_st = np.std(x_tmp, axis=0)
             
             path_dbs = ''
             n_domain = 1
 
-            x_train[0]  = normalization_ops(feat_mu, feat_st, x_train[0])
-            x_valid[0]  = normalization_ops(feat_mu, feat_st, x_valid[0])
-            x_test[0]   = normalization_ops(feat_mu, feat_st, x_test[0])
+            x_train  = normalization_ops(feat_mu, feat_st, x_train)
+            x_valid  = normalization_ops(feat_mu, feat_st, x_valid)
+            x_test   = normalization_ops(feat_mu, feat_st, x_test)
             path_dbs += DATASET
 
             for seed in range(n_seeds):
-                best_UA_valid = [0.]
-                best_UA_test  = [0.]
-                best_EUC_test  = [0.]
-                best_COS_test  = [0.]
+                best_UA_valid = 0.
+                best_UA_test  = 0.
+                best_EUC_test  = 0.
+                best_COS_test  = 0.
                 if DO_mode == 'train':
                     print('SEED %d start' %(seed))
                     random.seed(seed)
@@ -234,15 +237,15 @@ for DATASET in DATASET_LIST:
     
                     for epoch in range(n_epochs):
                         # Start an epoch (training)
-                        rd_arr = [random.sample(range(len(y_train[0])),tr_n_samples)]
+                        rd_arr = random.sample(range(len(y_train)),tr_n_samples)
                         m_train= []
                         my_net.train()
                         for bc in range(n_minibatch):
                             optimizer.zero_grad()
 
-                            x_train_batch = torch.Tensor(x_train[0][rd_arr[0][bc*batch_size:batch_size*(bc+1)]]).to(device).cuda()
-                            y_train_batch = torch.Tensor(y_train[0][rd_arr[0][bc*batch_size:batch_size*(bc+1)]]).to(device).long().cuda()
-                            ls_train_batch = torch.Tensor(ls_train[0][rd_arr[0][bc*batch_size:batch_size*(bc+1)]]).to(device).long().cuda()
+                            x_train_batch = torch.Tensor(x_train[rd_arr[bc*batch_size:batch_size*(bc+1)]]).to(device).cuda()
+                            y_train_batch = torch.Tensor(y_train[rd_arr[bc*batch_size:batch_size*(bc+1)]]).to(device).long().cuda()
+                            ls_train_batch = torch.Tensor(ls_train[rd_arr[bc*batch_size:batch_size*(bc+1)]]).to(device).long().cuda()
                             d_train_batch = torch.Tensor(np.ones(batch_size,)*0).to(device).long().cuda()
                             
                             class_output, _, _ = my_net(input_data=x_train_batch, alpha=0)
@@ -274,7 +277,7 @@ for DATASET in DATASET_LIST:
                         tmp_wa_list = []
                         tmp_ua_list = []
                         tmp_wa, tmp_ua = wc_evaluation(my_net, 
-                                        [x_train[0], x_valid[0]], [y_train[0], y_valid[0]], 0, device)
+                                        [x_train, x_valid], [y_train, y_valid], 0, device)
                         tmp_wa_list= [tmp_wa]
                         tmp_ua_list= [tmp_ua]
                         tmp_wa = np.mean(tmp_wa_list,0)
@@ -287,10 +290,10 @@ for DATASET in DATASET_LIST:
                             best_score = tmp_score
                             best_UA = tmp_ua[1]
     
-                            _, tmp_ua = wc_evaluation(my_net, [x_valid[0], x_test[0]], \
-                                                        [y_valid[0],y_test[0]], 0, device)
-                            best_UA_valid[0] = tmp_ua[0]
-                            best_UA_test[0] = tmp_ua[-1]
+                            _, tmp_ua = wc_evaluation(my_net, [x_valid, x_test], \
+                                                        [y_valid,y_test], 0, device)
+                            best_UA_valid = tmp_ua[0]
+                            best_UA_test = tmp_ua[-1]
                             print("new_acc!")
                             makedirs('%s/%s' %(train_path, Model_NAME))
                             torch.save(my_net, '%s/%s/WC_fold%s_seed%s.pth' %(train_path, Model_NAME, str(fold), str(seed)))
@@ -304,23 +307,23 @@ for DATASET in DATASET_LIST:
                     my_net = torch.load('%s/%s/WC_fold%s_seed%s.pth' %(train_path, Model_NAME, str(fold), str(seed))) 
                     my_net.eval()
                     
-                    _, tmp_ua = wc_evaluation(my_net, [x_valid[0], x_test[0]], \
-                                                            [y_valid[0],y_test[0]], 0, device)
-                    best_UA_valid[0] = tmp_ua[0]
-                    best_UA_test[0] = tmp_ua[-1]
+                    _, tmp_ua = wc_evaluation(my_net, [x_valid, x_test], \
+                                                            [y_valid,y_test], 0, device)
+                    best_UA_valid = tmp_ua[0]
+                    best_UA_test = tmp_ua[-1]
                 
-                    x_eval = torch.Tensor(x_test[0]).to(device).cuda()
+                    x_eval = torch.Tensor(x_test).to(device).cuda()
                     class_output, _, _ = my_net(x_eval, alpha=0)
                     class_output = F.softmax(class_output,1)
-                    best_EUC_test[0] = np.sqrt(((np.array(class_output.tolist())-ys_test[0])**2).sum(axis=-1)).mean()
-                    best_COS_test[0] = cosine_similarity(np.array(class_output.tolist()),ys_test[0]).diagonal().mean()
+                    best_EUC_test = np.sqrt(((np.array(class_output.tolist())-ys_test)**2).sum(axis=-1)).mean()
+                    best_COS_test = cosine_similarity(np.array(class_output.tolist()),ys_test).diagonal().mean()
                     
                     fold_EUC_test.append(best_EUC_test)
                     fold_COS_test.append(best_COS_test)
         
                 # seed end
-                fold_UA_valid.append(best_UA_valid)
-                fold_UA_test.append(best_UA_test)
+                fold_UA_valid.append([best_UA_valid])
+                fold_UA_test.append([best_UA_test])
             # fold end (do nothing)
         # DB end
         UA_valid.append(fold_UA_valid)
