@@ -40,7 +40,7 @@ Model_NAME = 'WC0716_JY'
 DATASET_LIST = list(np.sort(['CREMA-D'])) # ['DEMoS']# ['CREMA-D','IEMOCAP','MSPIMPROV']
 DO_mode = 'train' # test train
 
-class TMP():
+class Trainer():
     def __init__(self):
         pass
 
@@ -76,6 +76,14 @@ class TMP():
         np.random.seed(seed)
         torch.manual_seed(seed)
 
+    def get_n_fold(self,dataset):
+        n_fold = 10
+        if 'MSPIMPROV' == dataset:
+            n_fold = 12
+        elif 'CREMA-D' == dataset:
+            n_fold = 1
+        return n_fold
+
     def init_network(self):
         self.model = BaseModel().cuda()
         # setup optimizer
@@ -97,23 +105,17 @@ class TMP():
             ls_train_batch = torch.Tensor(ls_train[samples]).to(device).long().cuda()
             
             class_output, _, _ = self.model(input_data=x_train_batch, alpha=0)
-            class_logit_list = [class_output]
-            label_list = [y_train_batch]
-            ls_label_list = [ls_train_batch]
-            weight_list = []
+
             weight = torch.zeros(4).to(device)
             for j in range(4):
-                weight[j] = 0 if (label_list[-1]==j).sum() == 0 else 1.0 / (label_list[-1]==j).sum().float() 
+                weight[j] = 0 if (y_train_batch==j).sum() == 0 else 1.0 / (y_train_batch==j).sum().float() 
             weight = weight / (weight.sum() + 1e-8)
-            weight_list = [weight]
-            L_total = 0.
-            for p, l, w, ls in zip(class_logit_list, label_list, weight_list, ls_label_list):
-                if p is None:
-                    continue
-                self.my_loss.alpha     =  w #None
-                L_total += self.my_loss(p, l, ls) /1.0
+
+            self.my_loss.alpha =  weight
+            L_total = self.my_loss(class_output, y_train_batch, ls_train_batch) /1.0
             L_total.backward()
             self.optimizer.step()
+
             del x_train_batch, y_train_batch 
         # Start an epoch (validation)
         self.model.eval()
@@ -185,6 +187,25 @@ class TMP():
         return fold_EUC_test, fold_COS_test, fold_UA_valid, fold_UA_test
         # fold end (do nothing)
 
+    def train(self): 
+        # self.list_manager = ScoreManager()
+        UA_valid, UA_test, EUC_test, COS_test = ([] for _ in range(4))
+
+        for DATASET in DATASET_LIST:
+            if 'WC' in RUN_Option:
+                n_fold = self.get_n_fold(DATASET)
+                UA_valid.append([]), UA_test.append([]), EUC_test.append([]), COS_test.append([])
+
+                for fold in range(n_fold):
+                    fold_EUC_test, fold_COS_test, fold_UA_valid, fold_UA_test = self.train_fold(DATASET,fold)
+                    UA_valid[-1] += fold_UA_valid
+                    UA_test[-1] += fold_UA_test
+                    EUC_test[-1] += fold_EUC_test
+                    COS_test[-1] += fold_COS_test
+                
+                print("WC Domain [%s] valid UA: %.2f-%.4f test UA %.2f-%.4f" %(DATASET, np.mean(UA_valid[-1]),np.std(UA_valid[-1]),
+                        np.mean(UA_test[-1]),np.std(UA_test[-1])))
+
     def test(self,my_net):
         my_net.eval()
         
@@ -200,52 +221,23 @@ class TMP():
         best_COS_test = cosine_similarity(np.array(class_output.tolist()),self.dataset[DataType.YS_TEST]).diagonal().mean()
 
         return best_UA_valid,best_UA_test,best_EUC_test,best_COS_test
-        
-    def get_n_fold(self,dataset):
-        n_fold = 10
-        if 'MSPIMPROV' == dataset:
-            n_fold = 12
-        elif 'CREMA-D' == dataset:
-            n_fold = 1
-        return n_fold
 
-    def train(self): 
-        self.list_manager = ListManager()
-        self.list_manager.init_list(['UA_valid','UA_test','EUC_test','COS_test'])
+# class ScoreManager():
+#     def __init__(self):
+#         self.list_dict = {}
 
-        for DATASET in DATASET_LIST:
-            if 'WC' in RUN_Option:
-                n_fold = self.get_n_fold(DATASET)
-                self.list_manager.append_by_dict({'UA_valid':[],'UA_test':[],'EUC_test':[],'COS_test':[]})
-                for fold in range(n_fold):
-                    fold_EUC_test, fold_COS_test, fold_UA_valid, fold_UA_test = self.train_fold(DATASET,fold)
+#     def init_values(self,names):
+#         for name in names:
+#             self.list_dict[name] = []
 
-                    self.list_manager['UA_valid'][-1] += fold_UA_valid
-                    self.list_manager['UA_test'][-1] += fold_UA_test
-                    self.list_manager['EUC_test'][-1] += fold_EUC_test
-                    self.list_manager['COS_test'][-1] += fold_COS_test
-                
-                valid_UA = self.list_manager['UA_valid'][-1]
-                test_UA = self.list_manager['UA_test'][-1]
-                print("WC Domain [%s] valid UA: %.2f-%.4f test UA %.2f-%.4f" %(DATASET, np.mean(valid_UA),np.std(valid_UA),
-                        np.mean(test_UA),np.std(test_UA)))
+#     def append_by_dict(self,dict):
+#         for key,value in dict.items():
+#             self.list_dict[key].append(value)
 
-class ListManager():
-    def __init__(self):
-        self.list_dict = {}
-
-    def init_list(self,names):
-        for name in names:
-            self.list_dict[name] = []
-
-    def append_by_dict(self,dict):
-        for key,value in dict.items():
-            self.list_dict[key].append(value)
-
-    def __getitem__(self,key):
-        return self.list_dict[key]
+#     def __getitem__(self,key):
+#         return self.list_dict[key]
 
 
 if __name__ == '__main__':
-    x = TMP()
+    x = Trainer()
     x.train()
