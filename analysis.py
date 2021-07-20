@@ -4,15 +4,13 @@ Created on Tue Mar 16 16:39:06 2021
 
 @author: Youngdo Ahn
 """
-from const import ROOT_PATH
+from setting import ROOT_PATH
 import os
 import torch.utils.data
 import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 from functions import normalization_ops, makedirs, load_unlabeled_corpus, load_emotion_corpus, wc_confusion, wc_evaluation, load_soft_labels
-from model import BaseModel
-from sklearn.metrics import accuracy_score, balanced_accuracy_score
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.manifold import TSNE
 #import torch.backends.cudnn as tbc

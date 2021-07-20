@@ -5,7 +5,7 @@ Created on Tue May 11 09:23:38 2021
 @author: Youngdo Ahn
 """
 
-from const import ROOT_PATH
+from setting import ROOT_PATH
 import os
 import numpy as np
 import sys
