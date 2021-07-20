@@ -222,22 +222,6 @@ class Trainer():
 
         return best_UA_valid,best_UA_test,best_EUC_test,best_COS_test
 
-# class ScoreManager():
-#     def __init__(self):
-#         self.list_dict = {}
-
-#     def init_values(self,names):
-#         for name in names:
-#             self.list_dict[name] = []
-
-#     def append_by_dict(self,dict):
-#         for key,value in dict.items():
-#             self.list_dict[key].append(value)
-
-#     def __getitem__(self,key):
-#         return self.list_dict[key]
-
-
 if __name__ == '__main__':
     x = Trainer()
     x.train()
