@@ -1,15 +1,16 @@
 import csv
 import pickle
 from functions import normalization_ops, wLoss
-from data_loader import load_emotion_corpus_WC
 from setting import ROOT_PATH
 import torch
 import os 
-from sklearn.metrics import accuracy_score, balanced_accuracy_score
 import numpy as np 
 import matplotlib.pyplot as plt
 import fnmatch
 import matplotlib.patches as mpatches
+from tqdm import tqdm
+import json
+
 '''
 # 1 엡실론 더한 값의 feature랑 기존 feature를 비교하는 값을 뽑는다
 # 2 gradient가 큰 값만 변형했을 때 정확도 차이를 본다
@@ -49,6 +50,17 @@ def fgsm_attack(data, epsilon, data_grad,clip_range=None):
     # 작은 변화가 적용된 이미지를 리턴합니다
     return perturbed_data.to(device).cuda()
 
+def feature_attack(data,epsilon,data_grad,feature_idx):
+    # data_grad 의 요소별 부호 값을 얻어옵니다
+    sign_data_grad = -1 * data_grad.sign()
+    # 입력 이미지의 각 픽셀에 sign_data_grad 를 적용해 작은 변화가 적용된 이미지를 생성합니다
+    perturbed_data = data.clone()
+    perturbed_data[0][feature_idx] += epsilon*sign_data_grad[0][feature_idx]
+
+    del sign_data_grad
+    # 작은 변화가 적용된 이미지를 리턴합니다
+    return perturbed_data
+
 def show_plot():
     pass
 def save_result():
@@ -64,9 +76,10 @@ def get_output(x_data,y_data,model,loss_func,requires_grad=False):
 
     pred = class_output.data.max(1, keepdim=True)[1]
     loss = loss_func(class_output, pred, y_data)
+
     return pred,loss
 
-def test(x_data,y_data,model,loss_func,epsilon):
+def test(x_data,y_data,model,loss_func,epsilon,feature_names):
     x_data = torch.Tensor([x_data]).to(device).cuda()
     y_data = torch.Tensor([y_data]).to(device).long().cuda()
     prediction, loss = get_output(x_data,y_data,model,loss_func,requires_grad=True)
@@ -79,14 +92,17 @@ def test(x_data,y_data,model,loss_func,epsilon):
     data_grad = x_data.grad.data
 
     attack_data = { "original": x_data,
-                    "with_clip":fgsm_attack(x_data,epsilon,data_grad,[-10,10]),
+                    # "with_clip":fgsm_attack(x_data,epsilon,data_grad,[-10,10]),
                     "without_clip":fgsm_attack(x_data,epsilon,data_grad)}
+    for i in range(len(feature_names)):
+        attack_data[f"feature_{feature_names[i]}"] = feature_attack(x_data,epsilon,data_grad,i)
+
     attack_result = {}
     for key,data in attack_data.items():
         attack_result[key] = get_output(data,y_data,model,loss_func)
-
     return_data = {key:(attack_data[key],attack_result[key][0],attack_result[key][1]) 
                         for key in attack_data.keys()}
+
     return return_data
 
 def load_smile_feature_names():
@@ -97,13 +113,38 @@ def load_smile_feature_names():
     feats_name = [each[0].split(' ')[1] for each in reader[3:-5]]
     return feats_name
 
+def show_feature_plot(features_model):
+    feature_info = {}
+    for key,feature_list in features_model.items():
+        feature_info[key] = {}
+        for feature_name,feature_values in feature_list.items():
+            feature_values = np.array(feature_values)
+            feature_info[key][feature_name] = {
+                "min":np.min(feature_values),
+                "max":np.max(feature_values),
+                "mean":np.mean(feature_values)}
+
+    #이 seed에 대해서 feature 범위 보여주기
+    colors = ('b','r','green')
+    for i,(key,feature_list) in enumerate(feature_info.items()):
+        for j,(feature_name,feature_values) in enumerate(feature_list.items()):
+            plt.vlines(x=j+i*0.2, ymin=feature_values['min'], ymax=feature_values['max'], color=colors[i], label=key)
+            if j > 10:
+                break
+    
+    legends = []
+    for color,label in zip(colors,feature_info.keys()):
+        legends.append(mpatches.Patch(color=color, label=label))
+
+    plt.legend(handles=legends)
+    plt.show()
 
 if __name__ == '__main__':
     feature_names = load_smile_feature_names()
     x_dataset,y_dataset = load_data()
     loss_func = wLoss().cuda()
     for i in range(30):
-        epsilon = i/100 + 0.2
+        epsilon = i/100 + 0.1
         pre_trained_models = get_pth_files(MODEL_PATH)
 
         ua_total = []
@@ -114,42 +155,32 @@ if __name__ == '__main__':
             features_model = {}
             model = torch.load(os.path.join(MODEL_PATH,model_path))
             model.eval()
-            for x_data,y_data in zip(x_dataset,y_dataset):
-                result = test(x_data,y_data,model,loss_func,epsilon)
-                for key,(feature,prediction,loss) in result.items():
+            for x_data,y_data in tqdm(zip(x_dataset,y_dataset),total=len(x_dataset)):
+                result = test(x_data,y_data,model,loss_func,epsilon,feature_names)
+                for key,(features,prediction,loss) in result.items():
                     if key not in ua_model.keys():
                         ua_model[key] = 0
                     ua_model[key] += 1 if y_data == prediction.item() else 0
 
                     if key not in features_model.keys():
                         features_model[key] = {feature:[] for feature in feature_names}
-                    feature = feature[0].cpu().detach().numpy()
-                    for feature, value in zip(feature_names,feature):
-                        features_model[key][feature].append(value)
-                    
+
+                    # features = features[0].cpu().detach().numpy()
+                    # print(features)
+                    # for feature, value in zip(feature_names,features):
+                    #     features_model[key][feature].append(value)
+
             ua_model = {key:value/len(x_dataset)*100 for key,value in ua_model.items()}
 
-            feature_info = {}
-            for key,feature_list in features_model.items():
-                feature_info[key] = {}
-                for feature_name,feature_values in feature_list.items():
-                    feature_values = np.array(feature_values)
-                    feature_info[key][feature_name] = {
-                        "min":np.min(feature_values),
-                        "max":np.max(feature_values),
-                        "mean":np.mean(feature_values)}
+            ua_list = list(ua_model.items())
+            ua_list.sort(key=lambda value: value[1])
+            # ua_list = ua_list[:20]
+            ua_list_diff = [(key,ua_model['original'] - elem) for key,elem in ua_list]
 
-            #이 seed에 대해서 feature 범위 보여주기
-            colors = ('b','r','green')
-            for i,(key,feature_list) in enumerate(feature_info.items()):
-                for j,(feature_name,feature_values) in enumerate(feature_list.items()):
-                    plt.vlines(x=j+i*0.2, ymin=feature_values['min'], ymax=feature_values['max'], color=colors[i], label=key)
-                    if j > 10:
-                        break
-            
-            legends = []
-            for color,label in zip(colors,feature_info.keys()):
-                legends.append(mpatches.Patch(color=color, label=label))
+            ua_top_dict = {key:value for key,value in ua_list_diff}
+            # print(ua_top_dict)
+            with open(f'./{model_path.split(".")[0]}_{epsilon}.json','w') as f:
+                json.dump(ua_top_dict,f)
 
-            plt.legend(handles=legends)
-            plt.show()
+            # show_feature_plot(features_model)
+
