@@ -80,8 +80,8 @@ def get_output(x_data,y_data,model,loss_func,requires_grad=False):
     return pred,loss
 
 def test(x_data,y_data,model,loss_func,epsilon,feature_names):
-    x_data = torch.Tensor([x_data]).to(device).cuda()
-    y_data = torch.Tensor([y_data]).to(device).long().cuda()
+    # x_data = torch.Tensor([x_data])
+    # y_data = torch.Tensor([y_data]).long()
     prediction, loss = get_output(x_data,y_data,model,loss_func,requires_grad=True)
     
     if prediction.item() != y_data.item():
@@ -155,6 +155,8 @@ if __name__ == '__main__':
             features_model = {}
             model = torch.load(os.path.join(MODEL_PATH,model_path))
             model.eval()
+            x_dataset = torch.Tensor(np.expand_dims(x_dataset,1)).cuda()
+            y_dataset = torch.Tensor(np.expand_dims(y_dataset,1)).cuda()
             for x_data,y_data in tqdm(zip(x_dataset,y_dataset),total=len(x_dataset)):
                 result = test(x_data,y_data,model,loss_func,epsilon,feature_names)
                 for key,(features,prediction,loss) in result.items():
