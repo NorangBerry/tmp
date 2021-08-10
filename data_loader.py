@@ -79,10 +79,10 @@ def load_CREMAD_WC(train_path):
     
     x_test = data['x_data'][te_list==1] # 540
     y_test = data['y_data'][te_list==1]
-    ys_test = data['ys_data'][te_list==1]
+    ys_test = []#data['ys_data'][te_list==1]
     #ys_test = np.eye(4)[y_test]
-    ys_test = ys_test.T[:4]
-    ys_test = (ys_test/ys_test.sum(0)).T
+    # ys_test = ys_test.T[:4]
+    # ys_test = (ys_test/ys_test.sum(0)).T
     del data 
     return x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test
     #'''

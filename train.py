@@ -37,7 +37,7 @@ class Trainer():
             "batch_size" : 32,
             "n_patience" : 5,
             "n_seeds" : 5,
-            "model_name" : "WC0716_JY",
+            "model_name" : "WC0802_JY",
             "device" : torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         })
 
@@ -155,7 +155,7 @@ class Trainer():
 
     def train_fold(self,DATASET,fold):
         train_path = os.path.join(os.path.join(ROOT_PATH,DATASET), self.setting.feat_name)
-        data_path = os.path.join(os.path.join(ROOT_PATH,DATASET), self.setting.feat_name)
+        data_path = os.path.join(os.path.join(ROOT_PATH,"my_crema","opensmile"), self.setting.feat_name)
 
         print('******** Dataset Loading ***********')
         print('***SRC %s  FOLD %d***********' %(DATASET, fold))
@@ -210,8 +210,8 @@ class Trainer():
         x_eval = torch.Tensor(self.dataset[DataType.X_TEST]).to(self.setting.device).cuda()
         class_output, _, _ = my_net(x_eval, alpha=0)
         class_output = F.softmax(class_output,1)
-        best_EUC_test = np.sqrt(((np.array(class_output.tolist())-self.dataset[DataType.YS_TEST])**2).sum(axis=-1)).mean()
-        best_COS_test = cosine_similarity(np.array(class_output.tolist()),self.dataset[DataType.YS_TEST]).diagonal().mean()
+        best_EUC_test = 0 #np.sqrt(((np.array(class_output.tolist())-self.dataset[DataType.YS_TEST])**2).sum(axis=-1)).mean()
+        best_COS_test = 0 #cosine_similarity(np.array(class_output.tolist()),self.dataset[DataType.YS_TEST]).diagonal().mean()
 
         return best_UA_valid,best_UA_test,best_EUC_test,best_COS_test
 
