@@ -1,28 +1,34 @@
 import csv
 import os
 import pickle
-from pathlib import Path
 
 import numpy as np
 from utils.setting import SMILE_CONFIG_PATH, DATASET_PATH, SMILE_EXE_PATH
-
+from tqdm import tqdm
 
 
 class SmileMaker():
-	def __init__(self,target_dir,filter=(lambda x: True)):
-		self.target_dir = target_dir
-		self.save_path = os.path.join(Path(target_dir).resolve().parent,"opensmile")
+	def __init__(self,wav_dir,smile_dir,filter=(lambda x: True)):
+		self.wav_dir = wav_dir
+		#같은 상위폴더의 opensmile폴더
+		self.smile_dir = smile_dir
 		self.filter = filter
+		if not os.path.exists(wav_dir):
+			os.makedirs(wav_dir)
+		if not os.path.exists(smile_dir):
+			os.makedirs(smile_dir)
+
+	def get_smile_path(self):
+		return self.smile_dir
 
 	def make_smile_csv(self):
-		if not os.path.exists(self.save_path):
-				os.makedirs(self.save_path)
-		for root, _, files in os.walk(self.target_dir):
-			for audio_file in files:
+		for root, _, files in os.walk(self.wav_dir):
+			print('******** Opensmile CSV Making ***********')
+			for audio_file in tqdm(files):
 				audio_file:str = audio_file
 				if audio_file.split('.')[-1] =='wav' and self.filter(audio_file):
 					audio_path = os.path.join(root,audio_file)
-					output_path = os.path.join(self.save_path,audio_file.replace('.wav','.csv'))
+					output_path = os.path.join(self.smile_dir,audio_file.replace('.wav','.csv'))
 					cmd = f"{SMILE_EXE_PATH} -C {SMILE_CONFIG_PATH} -I {audio_path} -O {output_path} -noconsoleoutput 1 -nologfile 1"
 					os.system(cmd)
 
@@ -38,7 +44,7 @@ class SmileMaker():
 	def make_pickle_file(self):
 		x_data = []
 		file_name_data = []
-		for root, subdirs, files in os.walk(self.save_path):
+		for root, subdirs, files in os.walk(self.smile_dir):
 			for file in files:
 				if file.split('.')[-1] == 'csv':
 					data = self.parse_smile_csv(os.path.join(root,file))
@@ -47,7 +53,7 @@ class SmileMaker():
 						file_name_data.append(file.replace('.csv','.wav'))
 		x_data = np.array(x_data,dtype=float)
 		data = {'x_data':x_data, 'file_name':file_name_data}
-		filename = os.path.join(self.save_path,"emobase2010.pickle")
+		filename = os.path.join(self.smile_dir,"emobase2010.pickle")
 		with open(filename, 'wb') as handle:
 		   pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -59,15 +65,20 @@ class CREMASmileMaker(SmileMaker):
 		y_data = []
 		s_data = []
 		file_name_data = []
-		for root, subdirs, files in os.walk(self.save_path):
+		for root, subdirs, files in os.walk(self.smile_dir):
 			for file in files:
-				if file.split('.')[-1] == 'csv':
-					data = self.parse_smile_csv(os.path.join(root,file))
-					if len(data) != 0 and len(file.split('_')) >= 4:
-						x_data.append(data)
+				filename,ext = (i for i in file.split('.'))
+				if ext == 'csv':
+					smile_data = self.parse_smile_csv(os.path.join(root,file))
+					file_info_list = filename.split('_')
+					label = file_info_list[2].lower()
+					speaker = int(file_info_list[0])-1001
+					if len(smile_data) != 0 and len(file_info_list) >= 4 and label in labels:
+						x_data.append(smile_data)
 						file_name_data.append(file.replace('.csv','.wav'))
-						y_data.append(labels.index(file.split('_')[2].lower()))
-						s_data.append(int(file.split('_')[0])-1001)
+						y_data.append(labels.index(label))
+						s_data.append(speaker)
+
 		x_data = np.array(x_data,dtype=float)
 		y_data = np.array(y_data)
 		data = {'x_data':x_data,
@@ -75,7 +86,7 @@ class CREMASmileMaker(SmileMaker):
 				's_data':s_data,
 				# 'ys_data':ys_data,
 				'file_name':file_name_data}
-		filename = os.path.join(self.save_path,"emobase2010.pickle")
+		filename = os.path.join(self.smile_dir,"emobase2010.pickle")
 		with open(filename, 'wb') as handle:
 		   pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 

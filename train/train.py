@@ -1,4 +1,4 @@
-from utils.setting import crema_setting,ROOT_PATH,DATASET_LIST,device, get_model_dir
+from utils.setting import crema_setting,ROOT_PATH,device, get_model_dir
 from utils.data_loader import load_emotion_corpus_WC
 import random
 import os 
@@ -27,13 +27,14 @@ class Trainer():
         self.init_setting()
         self.dataset = dataset
         self.model_dir = get_model_dir(self.dataset)
+        self.data_path = os.path.join(ROOT_PATH,self.dataset,"opensmile","emobase2010")
 
     def init_setting(self):
         self.setting = crema_setting
 
     def set_data(self,fold):
-        data_path = os.path.join(ROOT_PATH,self.dataset,"opensmile","emobase2010")
-        x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test = load_emotion_corpus_WC(self.dataset, data_path,fold)
+        
+        x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test = load_emotion_corpus_WC(self.dataset, self.data_path,fold)
 
         tr_n_samples = min(100000,len(y_train))
 
