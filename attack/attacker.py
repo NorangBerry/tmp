@@ -97,42 +97,6 @@ class Attacker():
 			print(len(x_data))
 			print(tester.test(x_data,y_data))
 
-	# FGSM 공격 코드
-	def fgsm_attack(self,data, epsilon, data_grad,clip_range=None) -> torch.Tensor:
-		# data_grad 의 요소별 부호 값을 얻어옵니다
-		sign_data_grad = -1 * data_grad.sign()
-		# 입력 이미지의 각 픽셀에 sign_data_grad 를 적용해 작은 변화가 적용된 이미지를 생성합니다
-		perturbed_data = data + epsilon*sign_data_grad
-
-		# 값 범위를 normalize 범위로 유지하기 위해 자르기(clipping)를 추가합니다
-		if clip_range is not None:
-			perturbed_data = torch.clamp(perturbed_data, clip_range[0], clip_range[1])
-
-		# 작은 변화가 적용된 이미지를 리턴합니다
-		return perturbed_data.to(device).cuda()
-
-	def feature_attack(self,data,epsilon,data_grad,feature_idx) -> torch.Tensor:
-		# data_grad 의 요소별 부호 값을 얻어옵니다
-		sign_data_grad = -1 * data_grad.sign()
-		# 입력 이미지의 각 픽셀에 sign_data_grad 를 적용해 작은 변화가 적용된 이미지를 생성합니다
-		perturbed_data = data.clone()
-		perturbed_data[0][feature_idx] += epsilon*sign_data_grad[0][feature_idx]
-
-		del sign_data_grad
-		# 작은 변화가 적용된 이미지를 리턴합니다
-		return perturbed_data
-
-	def big_feature_attack(self,data,epsilon,data_grad,index_list) -> torch.Tensor:
-		# data_grad 의 요소별 부호 값을 얻어옵니다
-		sign_data_grad = -1 * data_grad.sign()
-		# 입력 이미지의 각 픽셀에 sign_data_grad 를 적용해 작은 변화가 적용된 이미지를 생성합니다
-		perturbed_data = data.clone()
-		perturbed_data[0][index_list] += epsilon*sign_data_grad[0][index_list]
-
-		del sign_data_grad
-		# 작은 변화가 적용된 이미지를 리턴합니다
-		return perturbed_data
-
 	def get_smile_big_feature_index_map(self) -> 'dict[str,list[int]]':
 		feature_names = self.load_smile_feature_names()
 		feature_names:'list[list[str]]' = [feature_name.split('_') for feature_name in feature_names]
