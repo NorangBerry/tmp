@@ -5,7 +5,7 @@ import csv
 from noise_combine import Noise_Combiner
 import pickle
 from utils.functions import normalization_ops, wLoss
-from utils.setting import DATASET_PATH, ROOT_PATH
+from utils.setting import DATASET_PATH, ROOT_PATH, get_model_dir
 import torch
 import os 
 import numpy as np 
@@ -14,7 +14,6 @@ import fnmatch
 import random
 
 DATA_PATH = os.path.join(ROOT_PATH,"my_crema","opensmile")
-MODEL_PATH = os.path.join(ROOT_PATH,"CREMA-D","emobase2010","WC0802_JY")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -27,9 +26,11 @@ class Attacker():
 		self.x_data,self.y_data,self.x_filenames = self.load_data()
 		self.testers:'list[Tester]' = []
 		self.noise_maker = Noise_Combiner()
-		pre_trained_models = get_pth_files(MODEL_PATH)
+
+		model_dir = get_model_dir("CREMA-D")
+		pre_trained_models = get_pth_files(model_dir)
 		for model_path in pre_trained_models:
-			self.testers.append(Tester(torch.load(os.path.join(MODEL_PATH,model_path)),
+			self.testers.append(Tester(torch.load(os.path.join(model_dir,model_path)),
 									wLoss().cuda()))
 
 	def load_data(self) -> 'tuple[list[np.ndarray],list[np.ndarray]]':

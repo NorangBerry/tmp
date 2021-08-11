@@ -1,19 +1,17 @@
 import csv
 import os
 import pickle
+from pathlib import Path
 
 import numpy as np
-from utils.setting import CONFIG, DATASET_PATH, ROOT_PATH, SMILE_PATH
+from utils.setting import SMILE_CONFIG_PATH, DATASET_PATH, SMILE_EXE_PATH
 
 
 
 class SmileMaker():
-	def __init__(self,target_dir,save_dir,filter=(lambda x: True)):
-		self.conf_path = os.path.join(SMILE_PATH,"config", CONFIG)
-		self.exe_path = os.path.join(SMILE_PATH,'bin','SMILExtract')
-
-		self.save_path = save_dir
+	def __init__(self,target_dir,filter=(lambda x: True)):
 		self.target_dir = target_dir
+		self.save_path = os.path.join(Path(target_dir).resolve().parent,"opensmile")
 		self.filter = filter
 
 	def make_smile_csv(self):
@@ -25,7 +23,7 @@ class SmileMaker():
 				if audio_file.split('.')[-1] =='wav' and self.filter(audio_file):
 					audio_path = os.path.join(root,audio_file)
 					output_path = os.path.join(self.save_path,audio_file.replace('.wav','.csv'))
-					cmd = f"{self.exe_path} -C {self.conf_path} -I {audio_path} -O {output_path} -noconsoleoutput 1 -nologfile 1"
+					cmd = f"{SMILE_EXE_PATH} -C {SMILE_CONFIG_PATH} -I {audio_path} -O {output_path} -noconsoleoutput 1 -nologfile 1"
 					os.system(cmd)
 
 	def parse_smile_csv(self,path):
@@ -91,6 +89,6 @@ def is_valid_noise(filename):
 
 
 if __name__ == '__main__':
-	maker = CREMASmileMaker(os.path.join(DATASET_PATH,"CREMA-D"),os.path.join(ROOT_PATH, "my_crema","opensmile"),is_valid_crema)
+	maker = CREMASmileMaker(os.path.join(DATASET_PATH,"CREMA-D"),is_valid_crema)
 	# maker.make_smile_csv()
 	maker.make_pickle_file()

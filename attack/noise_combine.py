@@ -13,16 +13,14 @@ class Noise_Combiner():
 		self.pickle_path = os.path.join(ROOT_PATH, "musan","opensmile")
 		self.noise_pickle_path = os.path.join(dir, "custom","opensmile")
 		self.opensmile_manager = CREMASmileMaker(
-			target_dir=self.save_path,
-			save_dir=os.path.join(dir, "custom","opensmile")
+			target_dir=self.save_path
 		)
 		self.noise_dataset = self.load_noises()
 
 	def load_noises(self):
 		pickle_filename = os.path.join(self.pickle_path,"emobase2010.pickle")
 		if os.path.isfile(pickle_filename) == True:
-			smile_maker = SmileMaker(save_dir=os.path.join(ROOT_PATH, "musan","opensmile"),
-						target_dir=os.path.join(DATASET_PATH, "musan","noise"))
+			smile_maker = SmileMaker(target_dir=os.path.join(DATASET_PATH, "musan","noise"))
 			# smile_maker.make_smile_csv()
 			smile_maker.make_pickle_file()
 		with open(pickle_filename, 'rb') as handle:
