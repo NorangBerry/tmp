@@ -1,4 +1,4 @@
-from setting import ROOT_PATH
+from utils.setting import ROOT_PATH
 import torch
 import os 
 from tqdm import tqdm

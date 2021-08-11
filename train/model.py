@@ -4,9 +4,8 @@ Created on Wed Nov 25 11:29:56 2020
 @ref: https://github.com/fungtion/DANN_py3/blob/master/main.py
 @author: Youngdo Ahn
 """
-import torch
 import torch.nn as nn
-from functions import ReverseLayerF
+from utils.functions import ReverseLayerF
 
 class BaseModel(nn.Module):
     def __init__(self):

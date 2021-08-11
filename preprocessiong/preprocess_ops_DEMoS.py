@@ -5,13 +5,13 @@ Created on Tue May 11 09:23:38 2021
 @author: Youngdo Ahn
 """
 
-from setting import ROOT_PATH
+from utils.setting import ROOT_PATH
 import os
 import numpy as np
 import sys
 import csv
 sys.path.append("..")
-from functions import makedirs
+from utils.functions import makedirs
 
 
 AUDIO_DIR = "DEMoS_Italian_emotional_speech_corpus"

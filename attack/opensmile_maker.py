@@ -3,7 +3,7 @@ import os
 import pickle
 
 import numpy as np
-from setting import CONFIG, DATASET_PATH, ROOT_PATH, SMILE_PATH
+from utils.setting import CONFIG, DATASET_PATH, ROOT_PATH, SMILE_PATH
 
 
 

@@ -4,14 +4,14 @@ from checker import Tester
 import csv
 from noise_combine import Noise_Combiner
 import pickle
-from functions import normalization_ops, wLoss
-from setting import DATASET_PATH, ROOT_PATH
+from utils.functions import normalization_ops, wLoss
+from utils.setting import DATASET_PATH, ROOT_PATH
 import torch
 import os 
 import numpy as np 
 import re
 import fnmatch
-
+import random
 
 DATA_PATH = os.path.join(ROOT_PATH,"my_crema","opensmile")
 MODEL_PATH = os.path.join(ROOT_PATH,"CREMA-D","emobase2010","WC0802_JY")
@@ -56,24 +56,45 @@ class Attacker():
 				noise_file_path = os.path.join(noise_file_path,"free-sound",noise_file_name)
 			else:
 				noise_file_path = os.path.join(noise_file_path,"sound-bible",noise_file_name)
-
 			save_path = self.noise_maker.combine_noise(voice_file_path,noise_file_path)
 
 		self.noise_maker.extract_opensmile_csv()
 		self.noise_maker.make_pickle_file()
 
+	def sample_attack_generate(self):
+		noise_maker = Noise_Combiner(os.path.join(ROOT_PATH,"random_test"))
+		noise_file_names = noise_maker.noise_dataset['file_name']
+		for x_data,filename in tqdm(zip(self.x_data,self.x_filenames),total=len(self.x_data)):
+			noise_file_name = random.choice(noise_file_names)
+			voice_file_path = os.path.join(DATASET_PATH,"CREMA-D",filename)
+			noise_file_path = os.path.join(DATASET_PATH,"musan","noise")
+			if 'free' in noise_file_name:
+				noise_file_path = os.path.join(noise_file_path,"free-sound",noise_file_name)
+			else:
+				noise_file_path = os.path.join(noise_file_path,"sound-bible",noise_file_name)
+			save_path = noise_maker.combine_noise(voice_file_path,noise_file_path)
+		noise_maker.extract_opensmile_csv()
+		noise_maker.make_pickle_file()
+			
+
 	def test_attack(self):
-		# for tester in self.testers:
-		# 	x_data = torch.Tensor(self.x_data).cuda()
-		# 	y_data = torch.Tensor(self.y_data).unsqueeze(1).cuda()
-		# 	print(tester.test(x_data,y_data))
+		for tester in self.testers:
+			x_data = torch.Tensor(self.x_data).cuda()
+			y_data = torch.Tensor(self.y_data).unsqueeze(1).cuda()
+			print(tester.test(x_data,y_data))
+		noise_maker = Noise_Combiner(os.path.join(ROOT_PATH,"random_test"))
+		for tester in self.testers:
+			dataset = noise_maker.load_combined_voice()
+			x_data = torch.Tensor(dataset['x_data']).cuda()
+			y_data = torch.Tensor(dataset['y_data']).unsqueeze(1).cuda()
+			print(len(x_data))
+			print(tester.test(x_data,y_data))
 		for tester in self.testers:
 			dataset = self.noise_maker.load_combined_voice()
 			x_data = torch.Tensor(dataset['x_data']).cuda()
 			y_data = torch.Tensor(dataset['y_data']).unsqueeze(1).cuda()
 			print(len(x_data))
 			print(tester.test(x_data,y_data))
-
 
 	# FGSM 공격 코드
 	def fgsm_attack(self,data, epsilon, data_grad,clip_range=None) -> torch.Tensor:
@@ -135,5 +156,5 @@ class Attacker():
 
 if __name__ == '__main__':
 	attacker = Attacker()
-	# attacker.attack_file_generate()
+	# attacker.sample_attack_generate()
 	attacker.test_attack()

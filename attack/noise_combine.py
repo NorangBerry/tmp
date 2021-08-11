@@ -1,19 +1,20 @@
-from functions import normalization_ops
+from utils.functions import normalization_ops
 import pickle
-from setting import DATASET_PATH, ROOT_PATH
+from utils.setting import DATASET_PATH, ROOT_PATH
 from pydub import AudioSegment
 import numpy as np
 import os
 from opensmile_maker import CREMASmileMaker, SmileMaker
 
 class Noise_Combiner():
-	def __init__(self):
+	def __init__(self,dir=ROOT_PATH):
 		self.data_path = os.path.join(ROOT_PATH, "musan","wav")
-		self.save_path = os.path.join(ROOT_PATH, "custom","wav")
+		self.save_path = os.path.join(dir, "custom","wav")
 		self.pickle_path = os.path.join(ROOT_PATH, "musan","opensmile")
+		self.noise_pickle_path = os.path.join(dir, "custom","opensmile")
 		self.opensmile_manager = CREMASmileMaker(
 			target_dir=self.save_path,
-			save_dir=os.path.join(ROOT_PATH, "custom","opensmile")
+			save_dir=os.path.join(dir, "custom","opensmile")
 		)
 		self.noise_dataset = self.load_noises()
 
@@ -36,7 +37,7 @@ class Noise_Combiner():
 			return {'x_data':x_data,'file_name':filenames}
 
 	def load_combined_voice(self):
-		pickle_filename = os.path.join(ROOT_PATH, "custom","opensmile","emobase2010.pickle")
+		pickle_filename = os.path.join(self.noise_pickle_path,"emobase2010.pickle")
 		with open(pickle_filename, 'rb') as handle:
 			data = pickle.load(handle)
 			x_data = data['x_data']
@@ -49,7 +50,7 @@ class Noise_Combiner():
 			x_data  = normalization_ops(feat_mu, feat_st, x_data)
 			return {'x_data':x_data,'file_name':filenames, 'y_data':y_data}
 
-	def combine_noise(self,voice_file:np.ndarray,noise_file,gain_during_overlay=10):
+	def combine_noise(self,voice_file:np.ndarray,noise_file,path=None,gain_during_overlay=10):
 		voice = AudioSegment.from_file(voice_file)
 		noise = AudioSegment.from_file(noise_file)
 		combined:AudioSegment = voice.overlay(noise,gain_during_overlay=gain_during_overlay)
@@ -58,6 +59,8 @@ class Noise_Combiner():
 		noise_filename = os.path.basename(noise_file).split('.')[0]
 
 		save_path = os.path.join(self.save_path,f"{voice_filename}_{noise_filename}.wav")
+		if path != None:
+			save_path = os.path.join(path,f"{voice_filename}_{noise_filename}.wav")
 		combined.export(save_path, format='wav')
 		return save_path
 

@@ -1,5 +1,5 @@
-from setting import Setting,ROOT_PATH
-from data_loader import load_emotion_corpus_WC
+from utils.setting import Setting,ROOT_PATH
+from utils.data_loader import load_emotion_corpus_WC
 import random
 import os 
 os.environ["CUDA_VISIBLE_DEVICES"]='0'
@@ -9,7 +9,7 @@ import numpy as np
 import torch
 import random
 from sklearn.metrics.pairwise import cosine_similarity
-from functions import normalization_ops, wc_evaluation, wLoss, makedirs
+from utils.functions import normalization_ops, wc_evaluation, wLoss, makedirs
 from model import BaseModel
 from enum import Enum
 
