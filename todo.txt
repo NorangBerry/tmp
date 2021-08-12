@@ -1,0 +1,9 @@
+model 0. 원본 모델
+model 1. CREMA-D에서 noise random으로 섞은 걸 기준으로 학습한 모델
+model 2. CREMA-D에서 noise feature로 섞은 걸 기준으로 학습한 모델
+
+1. model 1에 대해 crema test평가 추출
+2. model 2에 대해 crema test평가 추출
+3. model 0에 대해 iemocap 평가 추출
+4. model 1에 대해 iemocap 평가 추출
+5. model 2에 대해 iemocap 평가 추출

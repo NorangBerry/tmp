@@ -1,0 +1,183 @@
+{
+    "original": {
+        "accuracy_val": "77.88%",
+        "accuracy_test": "64.99%"
+    },
+    "upleveltime": {
+        "accuracy": "82.75%",
+        "most_used_noise": [
+            "noise-free-sound-0281.wav",
+            "noise-free-sound-0564.wav",
+            "noise-free-sound-0624.wav"
+        ]
+    },
+    "minPos": {
+        "accuracy": "41.19%",
+        "most_used_noise": [
+            "noise-free-sound-0371.wav",
+            "noise-free-sound-0002.wav",
+            "noise-free-sound-0114.wav"
+        ]
+    },
+    "skewness": {
+        "accuracy": "60.48%",
+        "most_used_noise": [
+            "noise-free-sound-0448.wav",
+            "noise-sound-bible-0009.wav",
+            "noise-free-sound-0692.wav"
+        ]
+    },
+    "quartile": {
+        "accuracy": "41.60%",
+        "most_used_noise": [
+            "noise-sound-bible-0039.wav",
+            "noise-free-sound-0624.wav",
+            "noise-free-sound-0281.wav"
+        ]
+    },
+    "amean": {
+        "accuracy": "68.17%",
+        "most_used_noise": [
+            "noise-free-sound-0448.wav",
+            "noise-free-sound-0692.wav",
+            "noise-free-sound-0624.wav"
+        ]
+    },
+    "stddev": {
+        "accuracy": "45.16%",
+        "most_used_noise": [
+            "noise-sound-bible-0039.wav",
+            "noise-free-sound-0437.wav",
+            "noise-free-sound-0724.wav"
+        ]
+    },
+    "kurtosis": {
+        "accuracy": "56.05%",
+        "most_used_noise": [
+            "noise-sound-bible-0009.wav",
+            "noise-free-sound-0272.wav",
+            "noise-sound-bible-0005.wav"
+        ]
+    },
+    "iqr": {
+        "accuracy": "48.13%",
+        "most_used_noise": [
+            "noise-sound-bible-0039.wav",
+            "noise-free-sound-0272.wav",
+            "noise-free-sound-0253.wav"
+        ]
+    },
+    "linregc": {
+        "accuracy": "80.36%",
+        "most_used_noise": [
+            "noise-free-sound-0299.wav",
+            "noise-free-sound-0627.wav",
+            "noise-free-sound-0624.wav"
+        ]
+    },
+    "F0finEnv": {
+        "accuracy": "59.80%",
+        "most_used_noise": [
+            "noise-free-sound-0624.wav",
+            "noise-free-sound-0760.wav",
+            "noise-free-sound-0071.wav"
+        ]
+    },
+    "linregerrQ": {
+        "accuracy": "51.44%",
+        "most_used_noise": [
+            "noise-free-sound-0349.wav",
+            "noise-free-sound-0014.wav",
+            "noise-sound-bible-0039.wav"
+        ]
+    },
+    "F0final": {
+        "accuracy": "52.16%",
+        "most_used_noise": [
+            "noise-free-sound-0407.wav",
+            "noise-free-sound-0801.wav",
+            "noise-free-sound-0624.wav"
+        ]
+    },
+    "numOnsets": {
+        "accuracy": "69.74%",
+        "most_used_noise": [
+            "noise-free-sound-0754.wav"
+        ]
+    },
+    "noise-free-sound-0014.wav": {
+        "accuracy": "43.55%"
+    },
+    "noise-free-sound-0281.wav": {
+        "accuracy": "83.34%"
+    },
+    "noise-free-sound-0754.wav": {
+        "accuracy": "69.74%"
+    },
+    "noise-free-sound-0407.wav": {
+        "accuracy": "64.27%"
+    },
+    "noise-free-sound-0437.wav": {
+        "accuracy": "62.35%"
+    },
+    "noise-free-sound-0272.wav": {
+        "accuracy": "91.84%"
+    },
+    "noise-free-sound-0627.wav": {
+        "accuracy": "82.92%"
+    },
+    "noise-free-sound-0002.wav": {
+        "accuracy": "89.78%"
+    },
+    "noise-free-sound-0114.wav": {
+        "accuracy": "70.21%"
+    },
+    "noise-free-sound-0624.wav": {
+        "accuracy": "82.45%"
+    },
+    "noise-free-sound-0299.wav": {
+        "accuracy": "84.78%"
+    },
+    "noise-free-sound-0448.wav": {
+        "accuracy": "69.09%"
+    },
+    "noise-sound-bible-0039.wav": {
+        "accuracy": "46.37%"
+    },
+    "noise-free-sound-0801.wav": {
+        "accuracy": "56.56%"
+    },
+    "noise-free-sound-0349.wav": {
+        "accuracy": "56.93%"
+    },
+    "noise-sound-bible-0009.wav": {
+        "accuracy": "61.87%"
+    },
+    "noise-free-sound-0564.wav": {
+        "accuracy": "82.23%"
+    },
+    "noise-free-sound-0760.wav": {
+        "accuracy": "66.63%"
+    },
+    "noise-free-sound-0071.wav": {
+        "accuracy": "57.17%"
+    },
+    "noise-free-sound-0724.wav": {
+        "accuracy": "62.52%"
+    },
+    "noise-free-sound-0253.wav": {
+        "accuracy": "58.41%"
+    },
+    "noise-free-sound-0692.wav": {
+        "accuracy": "78.83%"
+    },
+    "noise-free-sound-0371.wav": {
+        "accuracy": "49.13%"
+    },
+    "noise-sound-bible-0005.wav": {
+        "accuracy": "53.83%"
+    },
+    "random": {
+        "accuracy": "50.90%"
+    }
+}

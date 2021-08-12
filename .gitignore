@@ -1,2 +1,2 @@
-*.json
+**/FGSM/*.json
 **.pyc
