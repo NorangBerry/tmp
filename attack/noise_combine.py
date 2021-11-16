@@ -4,7 +4,7 @@ from utils.setting import DATASET_PATH, ROOT_PATH
 from pydub import AudioSegment
 import numpy as np
 import os
-from .opensmile_maker import CREMASmileMaker, SmileMaker
+from smile.opensmile_maker import CREMASmileMaker, SmileMaker
 
 class Noise_Combiner():
 	def __init__(self,save_path):

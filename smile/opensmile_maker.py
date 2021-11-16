@@ -90,6 +90,10 @@ class CREMASmileMaker(SmileMaker):
 		with open(filename, 'wb') as handle:
 		   pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+
+class IemocapSmileMaker(SmileMaker):
+	pass
+
 def is_valid_crema(filename):
 	if filename.split('_')[2] in ['NEU','HAP','SAD','ANG']:
 		return True

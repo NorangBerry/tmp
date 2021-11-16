@@ -1,11 +1,15 @@
 import json
-from attack.opensmile_maker import CREMASmileMaker, SmileMaker, is_valid_crema
+from smile.opensmile_maker import CREMASmileMaker, SmileMaker, is_valid_crema
 from attack.attacker import Attacker, FeatureAttacker, FixedNoiseAttacker, RandomAttacker
-from utils.setting import DATASET_LIST, ROOT_PATH
+from utils.setting import DATASET_LIST, DATASET_PATH, ROOT_PATH
 from train.train import Trainer
 import os
 
 for dataset in DATASET_LIST:
+	maker = CREMASmileMaker(os.path.join(DATASET_PATH,"CREMA-D"),os.path.join(DATASET_PATH,"CREMA-D","opensmile"),is_valid_crema)
+	maker.make_smile_csv()
+	maker.make_pickle_file()
+	exit(0)
 	json_dict = {}
 	# log = open('noise_attack_log.txt', 'a')
 	features = ["upleveltime","minPos","skewness","quartile","amean","stddev","kurtosis","iqr","linregc","F0finEnv","linregerrQ","F0final","numOnsets"]
