@@ -1,3 +1,4 @@
+import abc
 from utils.setting import crema_setting,ROOT_PATH,device, get_model_dir
 from utils.data_loader import load_emotion_corpus_WC
 import random
@@ -65,13 +66,10 @@ class Trainer():
         np.random.seed(seed)
         torch.manual_seed(seed)
 
+    @abc.abstractmethod
     def get_n_fold(self):
-        n_fold = 10
-        if 'MSPIMPROV' == self.dataset:
-            n_fold = 12
-        elif 'CREMA-D' == self.dataset:
-            n_fold = 1
-        return n_fold
+        pass
+        # n_fold = 10
 
     def init_network(self):
         self.model = BaseModel().cuda()
@@ -147,7 +145,7 @@ class Trainer():
 
         return best_UA_valid, best_UA_test
 
-    def train_fold(self,fold,is_test=False):
+    def train_fold(self,fold):
 
         print('******** Dataset Loading ***********')
         print(f'***SRC {self.dataset}  FOLD {fold}***********')
@@ -159,14 +157,13 @@ class Trainer():
         for seed in range(self.setting.n_seeds):
             best_UA_valid = 0.
             best_UA_test  = 0.
-            if is_test == False:
-                best_UA_valid, best_UA_test = self.train_seed(seed,ls_train,tr_n_samples,n_minibatch,fold)
-            elif is_test == True:
-                my_net = torch.load(os.path.join(self.model_dir,f"WC_fold{fold}_seed{seed}.pth"))
-                best_UA_valid,best_UA_test,best_EUC_test,best_COS_test = self.test(my_net)
+            best_UA_valid, best_UA_test = self.train_seed(seed,ls_train,tr_n_samples,n_minibatch,fold)
+            # elif is_test == True:
+            #     my_net = torch.load(os.path.join(self.model_dir,f"WC_fold{fold}_seed{seed}.pth"))
+            #     best_UA_valid,best_UA_test,best_EUC_test,best_COS_test = self.test(my_net)
 
-                fold_EUC_test.append(best_EUC_test)
-                fold_COS_test.append(best_COS_test)
+            #     fold_EUC_test.append(best_EUC_test)
+            #     fold_COS_test.append(best_COS_test)
     
             # seed end
             fold_UA_valid.append([best_UA_valid])
@@ -190,7 +187,46 @@ class Trainer():
         print("WC Domain [%s] valid UA: %.2f-%.4f test UA %.2f-%.4f" %(self.dataset, np.mean(UA_valid[-1]),np.std(UA_valid[-1]),
                 np.mean(UA_test[-1]),np.std(UA_test[-1])))
 
-    def test(self,my_net):
+    def test(self):
+        UA_valid, UA_test, EUC_test, COS_test = ([] for _ in range(4))
+
+        n_fold = self.get_n_fold()
+        UA_valid.append([]), UA_test.append([]), EUC_test.append([]), COS_test.append([])
+
+        for fold in range(n_fold):
+            fold_EUC_test, fold_COS_test, fold_UA_valid, fold_UA_test = self.test_fold(fold)
+            EUC_test[-1] += fold_EUC_test
+            COS_test[-1] += fold_COS_test
+            UA_valid[-1] += fold_UA_valid
+            UA_test[-1] += fold_UA_test
+        
+        print("WC Domain [%s] valid UA: %.2f-%.4f test UA %.2f-%.4f" %(self.dataset, np.mean(UA_valid[-1]),np.std(UA_valid[-1]),
+                np.mean(UA_test[-1]),np.std(UA_test[-1])))
+
+    def test_fold(self,fold):
+
+        print('******** Dataset Loading ***********')
+        print(f'***SRC {self.dataset}  FOLD {fold}***********')
+
+        ls_train,n_minibatch,tr_n_samples = self.set_data(fold)
+
+        fold_EUC_test,fold_COS_test,fold_UA_valid,fold_UA_test = ([] for _ in range(4))
+
+        for seed in range(self.setting.n_seeds):
+            best_UA_valid = 0.
+            best_UA_test  = 0.
+            my_net = torch.load(os.path.join(self.model_dir,f"WC_fold{fold}_seed{seed}.pth"))
+            best_UA_valid,best_UA_test,best_EUC_test,best_COS_test = self.test_seed(my_net)
+
+            fold_EUC_test.append(best_EUC_test)
+            fold_COS_test.append(best_COS_test)
+    
+            # seed end
+            fold_UA_valid.append([best_UA_valid])
+            fold_UA_test.append([best_UA_test])
+        return fold_EUC_test, fold_COS_test, fold_UA_valid, fold_UA_test
+
+    def test_seed(self,my_net):
         my_net.eval()
         
         _, tmp_ua = wc_evaluation(my_net, [self.dataset[DataType.X_VALIDATION], self.dataset[DataType.X_TEST]], \
@@ -205,3 +241,15 @@ class Trainer():
         best_COS_test = cosine_similarity(np.array(class_output.tolist()),self.dataset[DataType.YS_TEST]).diagonal().mean()
 
         return best_UA_valid,best_UA_test,best_EUC_test,best_COS_test
+class CremaTrainer(Trainer):
+    def __init__(self):
+        super().__init__("CREMA-D")
+
+    def get_n_fold(self):
+        return 1
+
+class IemocapTrainer(Trainer):
+    def __init__(self):
+        super().__init__("IEMOCAP")
+    def get_n_fold(self):
+        return 10
