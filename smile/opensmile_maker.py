@@ -111,7 +111,7 @@ class IemocapSmileMaker(SmileMaker):
                 if len(data) == 0:
                     continue
 
-                label, speaker = self.parse_file_name(file)
+                label, speaker = self.parse_file_name(file.replace('.csv','.wav'))
                 
                 x_data.append(data)
                 y_data.append(label)
@@ -165,7 +165,7 @@ class IemocapSmileMaker(SmileMaker):
         if label == None:
             raise f"Invalid file {filename}"
         file_info_list = filename.split('_')
-        session_num = int(file_info_list[-3:-1])
+        session_num = int(file_info_list[0][-3:-1])
         gender = file_info_list[0][-1]
         speaker = session_num * 2 if gender == 'F' else session_num * 2 - 1
         return label,speaker
