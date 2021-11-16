@@ -1,4 +1,5 @@
 import json
+from smile.data_generator import DataGenerator
 from smile.opensmile_maker import CREMASmileMaker, SmileMaker, is_valid_crema
 from attack.attacker import Attacker, FeatureAttacker, FixedNoiseAttacker, RandomAttacker
 from utils.setting import DATASET_LIST, DATASET_PATH, ROOT_PATH
@@ -6,9 +7,16 @@ from train.train import Trainer
 import os
 
 for dataset in DATASET_LIST:
-	maker = CREMASmileMaker(os.path.join(DATASET_PATH,"CREMA-D"),os.path.join(DATASET_PATH,"CREMA-D","opensmile"),is_valid_crema)
-	maker.make_smile_csv()
-	maker.make_pickle_file()
+	generator = DataGenerator("CREMA-D")
+	generator.generate_from_one_wav()
+	# remove unused data
+	# TODO
+	# train
+
+	# test
+	# logs
+	
+	
 	exit(0)
 	json_dict = {}
 	# log = open('noise_attack_log.txt', 'a')
