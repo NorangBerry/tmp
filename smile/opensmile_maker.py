@@ -96,7 +96,7 @@ class CREMASmileMaker(SmileMaker):
 
 class IemocapSmileMaker(SmileMaker):
     def __init__(self,input_dir,output_dir):
-        super(SmileMaker,self).__init__(input_dir,output_dir)
+        super().__init__(input_dir,output_dir)
         self.wav_emotion_dict:dict = None
 
     def make_pickle_file(self):
@@ -137,15 +137,15 @@ class IemocapSmileMaker(SmileMaker):
                 for file in files:
                     if file[0] == '.' or file.split('.')[-1] != "txt":
                         continue
-                    with open(file,'r') as f:
+                    with open(os.path.join(root,file),'r') as f:
                         lines = f.readlines()
                         if "% [START_TIME - END_TIME] TURN_NAME EMOTION [V, A, D]" not in lines[0]:
                             continue
                         for line in lines:
                             pattern = re.compile("\[[0-9.]* - [0-9.]*\]	Ses[0-5][0-5][M,F]_.*	[a-z]*	\[.*\]")
-                            if pattern.match(line) == False:
+                            if pattern.match(line) == None:
                                 continue
-                            infos = line.split()
+                            infos = line.split('\t')
                             filename = infos[1]
                             emotion = infos[2].upper()
                             if emotion not in ['NEU','HAP','SAD','ANG']:
