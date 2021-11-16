@@ -25,7 +25,7 @@ class SmileMaker():
                 audio_file:str = audio_file
 
                 if audio_file.split('.')[-1] !='wav' \
-                or audio_file[0] != '.' \
+                or audio_file[0] == '.' \
                 or self.is_valid_file(audio_file) == False:
                     continue
 
