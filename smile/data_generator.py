@@ -4,7 +4,7 @@ from smile.opensmile_maker import CREMASmileMaker, IemocapSmileMaker, is_valid_c
 from utils.setting import DATASET_PATH
 
 
-class DataManager:
+class DataGenerator:
     def __init__(self,dataset):
         self.dataset = dataset
         self.data_path = os.path.join(DATASET_PATH,dataset)
