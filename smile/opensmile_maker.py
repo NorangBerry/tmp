@@ -9,11 +9,10 @@ from tqdm import tqdm
 
 
 class SmileMaker():
-    def __init__(self,input_dir,output_dir,filter=(lambda x: True)):
+    def __init__(self,input_dir,output_dir):
         self.input_dir = input_dir
         #같은 상위폴더의 opensmile폴더
         self.output_dir = output_dir
-        self.filter = filter
         if not os.path.exists(input_dir):
             os.makedirs(input_dir)
         if not os.path.exists(output_dir):

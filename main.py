@@ -1,6 +1,6 @@
 import json
 from smile.data_generator import DataGenerator
-from smile.opensmile_maker import CREMASmileMaker, SmileMaker, is_valid_crema
+from smile.opensmile_maker import CREMASmileMaker, SmileMaker
 from attack.attacker import Attacker, FeatureAttacker, FixedNoiseAttacker, RandomAttacker
 from utils.setting import DATASET_LIST, DATASET_PATH, ROOT_PATH
 from train.train import Trainer

@@ -1,5 +1,5 @@
 import os
-from smile.opensmile_maker import CREMASmileMaker, IemocapSmileMaker, is_valid_crema
+from smile.opensmile_maker import CREMASmileMaker, IemocapSmileMaker
 
 from utils.setting import DATASET_PATH
 
@@ -22,9 +22,9 @@ class DataGenerator:
     def get_smile_maker(self):
         maker = None
         if self.dataset == "CREMA-D":
-            maker = CREMASmileMaker(self.data_path,self.smile_path,self.filter)
+            maker = CREMASmileMaker(self.data_path,self.smile_path)
         elif self.dataset == "IEMOCAP":
-            maker = IemocapSmileMaker(self.data_path,self.smile_path,self.filter)
+            maker = IemocapSmileMaker(self.data_path,self.smile_path)
         return maker
 
     def pickle_exists(self):
