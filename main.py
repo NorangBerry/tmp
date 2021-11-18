@@ -8,13 +8,20 @@ import os
 
 for dataset in DATASET_LIST:
     generator = DataGenerator("CREMA-D")
+    generator2 = DataGenerator("IEMOCAP")
     generator.generate_from_one_wav()
+    generator2.generate_from_one_wav()
+
     # remove unused data
     # TODO
+
     # train
-    CremaTrainer().train()
-    IemocapTrainer().train()
-    # test
+    # CremaTrainer().train()
+    # IemocapTrainer().train()
+    
+	# test
+    CremaTrainer().test()
+    IemocapTrainer().test()
     # logs
     
     

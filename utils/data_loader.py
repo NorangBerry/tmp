@@ -18,34 +18,30 @@ def load_IEMOCAP_WC(train_path, fold):
     with open(train_filename, 'rb') as handle:
         data = pickle.load(handle)
     x_data  = np.array(data['x_data'],dtype=float)
-    y_data = np.array(data['yh_data'],dtype=int)
-    ys_data = np.array(data['y_data'],dtype=int)
+    y_data = np.array(data['y_data'],dtype=int)
     s_data  = np.array(data['s_data'],dtype=int)
     data_list = y_data < 4     
     x_data  = x_data[data_list]
     y_data  = y_data[data_list]
-    ys_data = ys_data[data_list]
+    ys_data = []
     s_data  = s_data[data_list]
     
-    test_list  = s_data==fold
     if fold % 2 == 0:
-        valid_list = s_data==fold+1
+        valid_list = s_data==(fold+1)
+        test_list  = s_data==(fold+2)
     else:
-        valid_list = s_data==fold-1
+        valid_list = s_data==(fold+1)
+        test_list  = s_data==(fold)
     #valid_list  = np.logical_or(test_list,valid_list)
     x_valid     = x_data[valid_list]
     y_valid     = y_data[valid_list] 
     x_test     = x_data[test_list]
     y_test     = y_data[test_list] 
-    
     train_list = np.logical_not(np.logical_or(test_list,valid_list))
     x_train    = x_data[train_list]
     y_train    = y_data[train_list]
 
     
-    ys_data = ys_data[test_list]
-    ys_data = ys_data.T[:4]
-    ys_data = (ys_data/ys_data.sum(0)).T
     del data 
     return x_train, y_train, x_valid, y_valid, x_test, y_test, ys_data
         
@@ -123,14 +119,8 @@ def load_DEMoS_WC(train_path):
         
 def load_emotion_corpus_WC(corpus, train_path, fold):
     y_test_soft = None
-    if corpus in ['IEMOCAP', 'MSPIMPROV']:
-        if corpus== 'IEMOCAP':
-            foldt=fold%10
-        else:
-            foldt = fold
-        x_train, y_train, x_valid, y_valid, x_test, y_test, y_test_soft = load_IEMOCAP_WC(train_path, foldt)
+    if corpus in ['IEMOCAP']:
+        x_train, y_train, x_valid, y_valid, x_test, y_test, y_test_soft = load_IEMOCAP_WC(train_path, fold)
     elif corpus in ['CREMA-D']:
         x_train, y_train, x_valid, y_valid, x_test, y_test, y_test_soft = load_CREMAD_WC(train_path)
-    elif corpus in ['DEMoS']:
-        x_train, y_train, x_valid, y_valid, x_test, y_test = load_DEMoS_WC(train_path)
     return x_train, y_train, x_valid, y_valid, x_test, y_test, y_test_soft

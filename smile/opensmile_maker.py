@@ -100,6 +100,7 @@ class IemocapSmileMaker(SmileMaker):
         self.wav_emotion_dict:dict = None
 
     def make_pickle_file(self):
+        labels = ['neu', 'hap', 'sad', 'ang']
         x_data,y_data,s_data,file_name_data = [],[],[],[]
         for root, _, files in os.walk(self.output_dir):
             for file in files:
@@ -114,7 +115,7 @@ class IemocapSmileMaker(SmileMaker):
                 label, speaker = self.parse_file_name(file.replace('.csv','.wav'))
                 
                 x_data.append(data)
-                y_data.append(label)
+                y_data.append(labels.index(label.lower()))
                 s_data.append(speaker)
                 file_name_data.append(file.replace('.csv','.wav'))
 

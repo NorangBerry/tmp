@@ -36,7 +36,6 @@ class Trainer():
     def set_data(self,fold):
         
         x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test = load_emotion_corpus_WC(self.dataset, self.data_path,fold)
-
         tr_n_samples = min(100000,len(y_train))
 
         ls_train = np.eye(4)[y_train]
@@ -109,7 +108,6 @@ class Trainer():
         tmp_wa, tmp_ua = wc_evaluation(self.model, 
                         [self.dataloader[DataType.X_TRAIN], self.dataloader[DataType.X_VALIDATION]], 
                         [self.dataloader[DataType.Y_TRAIN], self.dataloader[DataType.Y_VALIDATION]], 0, device)
-        
         tmp_score = tmp_ua[1] 
         
         print("[Tra] wa: %.2f ua: %.2f [Val] wa: %.2f ua: %.2f" % (tmp_wa[0],tmp_ua[0], tmp_wa[1],tmp_ua[1]))
@@ -188,15 +186,13 @@ class Trainer():
                 np.mean(UA_test[-1]),np.std(UA_test[-1])))
 
     def test(self):
-        UA_valid, UA_test, EUC_test, COS_test = ([] for _ in range(4))
+        UA_valid, UA_test = ([] for _ in range(2))
 
         n_fold = self.get_n_fold()
-        UA_valid.append([]), UA_test.append([]), EUC_test.append([]), COS_test.append([])
+        UA_valid.append([]), UA_test.append([])
 
         for fold in range(n_fold):
-            fold_EUC_test, fold_COS_test, fold_UA_valid, fold_UA_test = self.test_fold(fold)
-            EUC_test[-1] += fold_EUC_test
-            COS_test[-1] += fold_COS_test
+            fold_UA_valid, fold_UA_test = self.test_fold(fold)
             UA_valid[-1] += fold_UA_valid
             UA_test[-1] += fold_UA_test
         
@@ -205,42 +201,30 @@ class Trainer():
 
     def test_fold(self,fold):
 
-        print('******** Dataset Loading ***********')
-        print(f'***SRC {self.dataset}  FOLD {fold}***********')
+        self.set_data(fold)
 
-        ls_train,n_minibatch,tr_n_samples = self.set_data(fold)
-
-        fold_EUC_test,fold_COS_test,fold_UA_valid,fold_UA_test = ([] for _ in range(4))
+        fold_UA_valid,fold_UA_test = ([] for _ in range(2))
 
         for seed in range(self.setting.n_seeds):
             best_UA_valid = 0.
             best_UA_test  = 0.
             my_net = torch.load(os.path.join(self.model_dir,f"WC_fold{fold}_seed{seed}.pth"))
-            best_UA_valid,best_UA_test,best_EUC_test,best_COS_test = self.test_seed(my_net)
+            best_UA_valid,best_UA_test = self.test_seed(my_net)
 
-            fold_EUC_test.append(best_EUC_test)
-            fold_COS_test.append(best_COS_test)
-    
             # seed end
             fold_UA_valid.append([best_UA_valid])
             fold_UA_test.append([best_UA_test])
-        return fold_EUC_test, fold_COS_test, fold_UA_valid, fold_UA_test
+        return fold_UA_valid, fold_UA_test
 
     def test_seed(self,my_net):
         my_net.eval()
-        
-        _, tmp_ua = wc_evaluation(my_net, [self.dataset[DataType.X_VALIDATION], self.dataset[DataType.X_TEST]], \
-                                                [self.dataset[DataType.Y_VALIDATION],self.dataset[DataType.Y_TEST]], 0, device)
+        _, tmp_ua = wc_evaluation(my_net, [self.dataloader[DataType.X_VALIDATION], self.dataloader[DataType.X_TEST]], \
+                                                [self.dataloader[DataType.Y_VALIDATION],self.dataloader[DataType.Y_TEST]], 0, device)
         best_UA_valid = tmp_ua[0]
         best_UA_test = tmp_ua[-1]
     
-        x_eval = torch.Tensor(self.dataset[DataType.X_TEST]).to(device).cuda()
-        class_output, _, _ = my_net(x_eval, alpha=0)
-        class_output = F.softmax(class_output,1)
-        best_EUC_test = np.sqrt(((np.array(class_output.tolist())-self.dataset[DataType.YS_TEST])**2).sum(axis=-1)).mean()
-        best_COS_test = cosine_similarity(np.array(class_output.tolist()),self.dataset[DataType.YS_TEST]).diagonal().mean()
 
-        return best_UA_valid,best_UA_test,best_EUC_test,best_COS_test
+        return best_UA_valid,best_UA_test
 class CremaTrainer(Trainer):
     def __init__(self):
         super().__init__("CREMA-D")
