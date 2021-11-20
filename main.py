@@ -5,6 +5,55 @@ from attack.attacker import Attacker, FeatureAttacker, FixedNoiseAttacker, Rando
 from utils.setting import DATASET_LIST, DATASET_PATH, ROOT_PATH
 from train.train import CremaTrainer, IemocapTrainer, Trainer
 import os
+from datetime import date
+
+class Logger:
+
+    filename:str
+    
+    def __init__(self):
+        now_dir = os.PathLike.Path(__file__).parent.resolve()
+        today = date.today().strftime("%Y-%m-%d")
+        filename = f"{today}.json"
+        self.filename = os.path.join(now_dir,filename)
+
+    def __append_log(self,log):
+        with open(self.filename,"r+") as file:
+            file_data = json.loads(file)
+            file_data.update(log)
+            file.seek(0)
+            json.dumps(file_data,file,indent=4)
+    
+    def log(self,data):
+        log = \
+        {
+            "TrainSet":
+            {
+                "BaseDB":"DB",
+                "NoiseType":"noisy/gradient/clean",
+                "dB":"0dB",
+                "gradient":"0.5"
+            },
+            "TestSet":
+            {
+                "BaseDB":"DB",
+                "Fold":"fold",
+                "NoiseType":"noisy/clean",
+                "dB":"0dB"
+            },
+            "Model":"current/new",
+            "Result":
+            {
+                "Accuracy":"00%",
+                "Weighted Accuracy":"00%",
+                "Happy":"00%",
+                "Neutral":"00%",
+                "Sad":"00%",
+                "Angry":"00%",
+            }
+        }
+        self.__append_log(log)
+
 
 for dataset in DATASET_LIST:
     generator = DataGenerator("CREMA-D")
@@ -16,12 +65,12 @@ for dataset in DATASET_LIST:
     # TODO
 
     # train
-    # CremaTrainer().train()
-    # IemocapTrainer().train()
+    CremaTrainer().run()
+    IemocapTrainer().run()
     
 	# test
-    CremaTrainer().test()
-    IemocapTrainer().test()
+    CremaTrainer().run()
+    IemocapTrainer().run()
     # logs
     
     
