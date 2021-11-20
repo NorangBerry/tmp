@@ -3,7 +3,7 @@ from smile.data_generator import DataGenerator
 from smile.opensmile_maker import CREMASmileMaker, SmileMaker
 from attack.attacker import Attacker, FeatureAttacker, FixedNoiseAttacker, RandomAttacker
 from utils.setting import DATASET_LIST, DATASET_PATH, ROOT_PATH
-from train.train import CremaTrainer, IemocapTrainer, Trainer
+from train.train import CremaTester, CremaTrainer, IemocapTester, IemocapTrainer, Trainer
 import os
 from datetime import date
 
@@ -65,12 +65,14 @@ for dataset in DATASET_LIST:
     # TODO
 
     # train
-    CremaTrainer().run()
-    IemocapTrainer().run()
+    # CremaTrainer().run()
+    # IemocapTrainer().run()
     
 	# test
-    CremaTrainer().run()
-    IemocapTrainer().run()
+    CremaTester("CREMA-D",1).run()
+    IemocapTester("IEMOCAP",1).run()
+    CremaTester("IEMOCAP",1).run()
+    IemocapTester("CREMA-D",1).run()
     # logs
     
     

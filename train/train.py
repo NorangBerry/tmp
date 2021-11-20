@@ -33,32 +33,6 @@ class ModelRunner():
     def init_setting(self):
         self.setting = crema_setting
 
-    def set_data(self,fold):
-        
-        x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test = load_emotion_corpus_WC(self.dataset, self.data_path,fold)
-        tr_n_samples = min(100000,len(y_train))
-
-        ls_train = np.eye(4)[y_train]
-        n_minibatch = int(np.floor(tr_n_samples/self.setting.batch_size))
-
-        feat_mu = np.mean(x_train,axis=0)
-        feat_st = np.std(x_train, axis=0)
-        
-        x_train  = normalization_ops(feat_mu, feat_st, x_train)
-        x_valid  = normalization_ops(feat_mu, feat_st, x_valid)
-        x_test   = normalization_ops(feat_mu, feat_st, x_test)
-
-        self.dataloader = {
-            DataType.X_TRAIN:x_train,
-            DataType.Y_TRAIN:y_train,
-            DataType.X_VALIDATION:x_valid,
-            DataType.Y_VALIDATION:y_valid,
-            DataType.X_TEST:x_test,
-            DataType.Y_TEST:y_test,
-            DataType.YS_TEST:ys_test,
-        }
-        return ls_train,n_minibatch,tr_n_samples
-
     def set_random_seed(self,seed):
         print('SEED %d start' %(seed))
         random.seed(seed)
@@ -214,10 +188,11 @@ class Trainer(ModelRunner):
         return best_UA_valid, best_UA_test
 
 class Tester(ModelRunner):
-    def __init__(self,test_dataset,test_fold):
-        super().__init__()
+    def __init__(self,train_dataset,test_dataset,test_fold):
+        super().__init__(train_dataset)
         self.test_fold = test_fold
         self.test_dataset = test_dataset
+        self.data_path = os.path.join(ROOT_PATH,self.test_dataset,"opensmile","emobase2010")
 
     def set_data(self,fold):
         x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test = load_emotion_corpus_WC(self.test_dataset, self.data_path, self.test_fold)
@@ -267,9 +242,17 @@ class IemocapTrainer(Trainer):
     def get_n_fold(self):
         return 10
 
-class CremaTester(CremaTrainer):
+class CremaTester(Tester):
     def __init__(self,testDB,fold):
-        super().__init__()
         self.trainDB = "CREMA-D"
-        self.testDB = testDB
-        self.fold = fold
+        super().__init__(self.trainDB,testDB,fold)
+    def get_n_fold(self):
+        return 1
+
+
+class IemocapTester(Tester):
+    def __init__(self,testDB,fold):
+        self.trainDB = "IEMOCAP"
+        super().__init__(self.trainDB,testDB,fold)
+    def get_n_fold(self):
+        return 10
