@@ -3,7 +3,7 @@ from smile.data_generator import DataGenerator
 from smile.opensmile_maker import CREMASmileMaker, SmileMaker
 from attack.attacker import Attacker, FeatureAttacker, FixedNoiseAttacker, RandomAttacker
 from utils.setting import DATASET_LIST, DATASET_PATH, ROOT_PATH
-from train.train import CremaTester, CremaTrainer, IemocapTester, IemocapTrainer, Trainer
+from train.train import CremaTester, CremaTrainer, IemocapTester, IemocapTrainer, Tester, Trainer
 import os
 from datetime import date
 
@@ -52,7 +52,7 @@ class Logger:
                 "Angry":"00%",
             }
         }
-        self.__append_log(log)
+        self.__append_log(data)
 
 
 for dataset in DATASET_LIST:
@@ -68,12 +68,18 @@ for dataset in DATASET_LIST:
     # CremaTrainer().run()
     # IemocapTrainer().run()
     
-	# test
-    CremaTester("CREMA-D",1).run()
-    IemocapTester("IEMOCAP",1).run()
-    CremaTester("IEMOCAP",1).run()
-    IemocapTester("CREMA-D",1).run()
-    # logs
+	# test & logs
+    testers:'list[Tester]' = [
+        CremaTester("CREMA-D",1),
+        IemocapTester("IEMOCAP",1),
+        CremaTester("IEMOCAP",1),
+        IemocapTester("CREMA-D",1)
+    ]
+    logger = Logger()
+    for tester in testers:
+        tester.run()
+        result = tester.get_result()
+        logger.log(result)
     
     
     exit(0)

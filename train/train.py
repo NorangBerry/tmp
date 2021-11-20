@@ -55,7 +55,6 @@ class ModelRunner():
         pass
 
     def run(self): 
-        # self.list_manager = ScoreManager()
         UA_valid, UA_test = ([] for _ in range(2))
 
         n_fold = self.get_n_fold()
@@ -68,11 +67,9 @@ class ModelRunner():
         
         print("WC Domain [%s] valid UA: %.2f-%.4f test UA %.2f-%.4f" %(self.dataset, np.mean(UA_valid[-1]),np.std(UA_valid[-1]),
                 np.mean(UA_test[-1]),np.std(UA_test[-1])))
+        return UA_valid[-1],UA_test[-1]
 
     def run_fold(self,fold):
-        print('******** Dataset Loading ***********')
-        print(f'***SRC {self.dataset}  FOLD {fold}***********')
-
         ls_train,n_minibatch,tr_n_samples = self.set_data(fold)
         fold_UA_valid,fold_UA_test = ([] for _ in range(2))
 
@@ -187,12 +184,19 @@ class Trainer(ModelRunner):
 
         return best_UA_valid, best_UA_test
 
+    def run_fold(self,fold):
+        print('******** Dataset Loading ***********')
+        print(f'***SRC {self.dataset}  FOLD {fold}***********')
+        super().run_fold(fold)
+
 class Tester(ModelRunner):
     def __init__(self,train_dataset,test_dataset,test_fold):
         super().__init__(train_dataset)
-        self.test_fold = test_fold
-        self.test_dataset = test_dataset
-        self.data_path = os.path.join(ROOT_PATH,self.test_dataset,"opensmile","emobase2010")
+        self.trainDB:str = train_dataset
+        self.test_fold:int = test_fold
+        self.test_dataset:str = test_dataset
+        self.data_path:str = os.path.join(ROOT_PATH,self.test_dataset,"opensmile","emobase2010")
+        self.test_result = {}
 
     def set_data(self,fold):
         x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test = load_emotion_corpus_WC(self.test_dataset, self.data_path, self.test_fold)
@@ -229,6 +233,45 @@ class Tester(ModelRunner):
     
         return best_UA_valid,best_UA_test
 
+    def run(self):
+        _, test_result = super().run()
+        self.test_result = {
+            "Accuracy":np.mean(test_result)
+        }
+        print(test_result)
+        print(test_result.shape)
+
+    def get_result(self) -> dict:
+        tokens = self.trainDB.split('-')
+        train_set = self.__parse_dataset_folder_info(self.trainDB)
+        test_set = self.__parse_dataset_folder_info(self.test_dataset)
+        test_set["Fold"] = self.test_fold
+        train_set["BaseDB"] = tokens[0]
+        return {
+            "TrainSet": train_set,
+            "TestSet": test_set,
+            "Model":"DANN",
+            "Result": self.test_result
+        }
+        
+    def __parse_dataset_folder_info(self,folder:str):
+        tokens = folder.split('-')
+        info = {
+                "BaseDB":None,
+                "NoiseType":None,
+        }
+        info["BaseDB"] = tokens[0]
+        if len(tokens) == 1:
+            info["NoiseType"] = "clean"
+        elif len(tokens) > 2 and tokens[1] == "noisy":
+            info["NoiseType"] = "noisy"
+            info["dB"] = f"{tokens[2]}dB"
+
+        elif len(tokens) > 2 and tokens[1] == "gradient":
+            info["NoiseType"] = "gradient"
+            info["gradient"] = f"0.{tokens[2]}"
+        return info
+
 class CremaTrainer(Trainer):
     def __init__(self):
         super().__init__("CREMA-D")
@@ -244,7 +287,6 @@ class IemocapTrainer(Trainer):
 
 class CremaTester(Tester):
     def __init__(self,testDB,fold):
-        self.trainDB = "CREMA-D"
         super().__init__(self.trainDB,testDB,fold)
     def get_n_fold(self):
         return 1
@@ -252,7 +294,6 @@ class CremaTester(Tester):
 
 class IemocapTester(Tester):
     def __init__(self,testDB,fold):
-        self.trainDB = "IEMOCAP"
         super().__init__(self.trainDB,testDB,fold)
     def get_n_fold(self):
         return 10
