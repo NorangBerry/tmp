@@ -4,7 +4,7 @@ import torch
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-DATASET_LIST = ['CREMA-D'] # ['DEMoS']# ['CREMA-D','IEMOCAP','MSPIMPROV']
+# DATASET_LIST = ['CREMA-D'] # ['DEMoS']# ['CREMA-D','IEMOCAP','MSPIMPROV']
 
 ROOT_PATH = "C:/codes/SER_base/210716_WC-CRE_for_JunyoungChoi"#Path(__file__).resolve().parent.resolve().parent
 
