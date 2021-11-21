@@ -1,6 +1,8 @@
 import abc
 import numpy as np
 import os
+
+from utils.functions import wLoss
 from .model import BaseModel
 from utils.setting import crema_setting, ROOT_PATH, get_model_dir
 import random

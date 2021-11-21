@@ -6,9 +6,20 @@ class CremaTester(Tester):
     def get_n_fold(self):
         return 1
 
+class CremaNoiseTester(Tester):
+    def __init__(self,testDB,fold,dB):
+        super().__init__(f"CREMA-D_{dB}",testDB,fold)
+    def get_n_fold(self):
+        return 1
 
 class IemocapTester(Tester):
     def __init__(self,testDB,fold):
         super().__init__("IEMOCAP",testDB,fold)
+    def get_n_fold(self):
+        return 10
+
+class IemocapNoiseTester(Tester):
+    def __init__(self,testDB,fold,dB):
+        super().__init__(f"IEMOCAP_{dB}",testDB,fold)
     def get_n_fold(self):
         return 10

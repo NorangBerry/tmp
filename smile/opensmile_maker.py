@@ -24,12 +24,17 @@ class SmileMaker():
             print('******** Opensmile CSV Making ***********')
             for audio_file in tqdm(files):
                 audio_file:str = audio_file
+                audio_file_origin:str = audio_file
+                if '-' in audio_file:
+                    tokens = audio_file.split('_')
+                    tokens[-2] = tokens[-2]+".wav"
+                    tokens = tokens[:-1]
+                    audio_file_origin = '_'.join(tokens)
 
                 if audio_file.split('.')[-1] !='wav' \
                 or audio_file[0] == '.' \
-                or self.is_valid_file(audio_file) == False:
+                or self.is_valid_file(audio_file_origin) == False:
                     continue
-
                 audio_path = os.path.join(root,audio_file)
                 output_path = os.path.join(self.output_dir,audio_file.replace('.wav','.csv'))
                 cmd = f"{SMILE_EXE_PATH} -C {SMILE_CONFIG_PATH} -I {audio_path} -O {output_path} -noconsoleoutput 1 -nologfile 1"
@@ -95,7 +100,8 @@ class CREMASmileMaker(SmileMaker):
         return False
 
 class IemocapSmileMaker(SmileMaker):
-    def __init__(self,input_dir,output_dir):
+    def __init__(self,input_dir,output_dir,label_dir = None):
+        self.label_dir = label_dir
         super().__init__(input_dir,output_dir)
         self.wav_emotion_dict:dict = None
 
@@ -134,6 +140,8 @@ class IemocapSmileMaker(SmileMaker):
         self.wav_emotion_dict = {}
         for session_num in range(1,6):
             emotion_file_path = os.path.join(self.input_dir,f"Session{session_num}","dialog","EmoEvaluation")
+            if self.label_dir != None:
+                emotion_file_path = os.path.join(self.label_dir,f"Session{session_num}","dialog","EmoEvaluation")
             for root, _, files in os.walk(emotion_file_path):
                 for file in files:
                     if file[0] == '.' or file.split('.')[-1] != "txt":
@@ -164,6 +172,13 @@ class IemocapSmileMaker(SmileMaker):
         return self.wav_emotion_dict[filename]
 
     def parse_file_name(self,filename):
+        filename:str = filename
+        if '-' in filename:
+            tokens = filename.split('_')
+            tokens[-2] = tokens[-2]+".wav"
+            tokens = tokens[:-1]
+            filename = '_'.join(tokens)
+
         label = self.get_label(filename)
         if label == None:
             raise f"Invalid file {filename}"

@@ -27,15 +27,17 @@ class DataGenerator:
         # remove unused data
 
     def generate_noise_mixing_wav(self,dB):
-        smile_maker = self.get_smile_maker()
+        self.generate_target_path = os.path.join(DATASET_PATH,f"{self.dataset}_{dB}")
+
         if self.pickle_exists() == True:
             return
-        noise_maker = self.get_noise_maker()
-        self.generate_target_path = os.path.join(DATASET_PATH,f"{self.dataset}_{dB}")
-        noise_maker.generate(self.generate_target_path,dB)
+        if os.path.isdir(self.generate_target_path) == False:
+            noise_maker = self.get_noise_maker()
+            noise_maker.generate(self.generate_target_path,dB)
 
 
-        smile_maker.make_smile_csv()
+        smile_maker = self.get_smile_maker()
+        # smile_maker.make_smile_csv()
         # make pickle zipped data
         smile_maker.make_pickle_file()
         # for file in tqdm(reader.get_file_list()):
@@ -49,7 +51,7 @@ class DataGenerator:
                 os.path.join(self.generate_target_path,"opensmile"))
         elif self.dataset == "IEMOCAP":
             maker = IemocapSmileMaker(self.generate_target_path,
-                os.path.join(self.generate_target_path,"opensmile"))
+                os.path.join(self.generate_target_path,"opensmile"),os.path.join(self.data_path))
         return maker
 
     def get_file_reader(self):

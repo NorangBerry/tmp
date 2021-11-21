@@ -33,10 +33,14 @@ class MusanReader(DataReader):
         return True
 
 class IemocapReader(DataReader):
+    def __init__(self, data_path):
+        self.wav_emotion_dict = None
+        super().__init__(data_path)
+
     def load_wav_emotion_dict(self):
         self.wav_emotion_dict = {}
         for session_num in range(1,6):
-            emotion_file_path = os.path.join(self.input_dir,f"Session{session_num}","dialog","EmoEvaluation")
+            emotion_file_path = os.path.join(self.data_path,f"Session{session_num}","dialog","EmoEvaluation")
             for root, _, files in os.walk(emotion_file_path):
                 for file in files:
                     if file[0] == '.' or file.split('.')[-1] != "txt":

@@ -3,7 +3,7 @@ from smile.data_generator import DataGenerator
 from smile.opensmile_maker import CREMASmileMaker, SmileMaker
 from utils.logger import Logger
 from utils.setting import ROOT_PATH
-from train.train import CremaTrainer, IemocapTrainer, Trainer
+from train.train import CremaNoiseTrainer, CremaTrainer, IemocapNoiseTrainer, IemocapTrainer, Trainer
 from train.test import CremaTester,IemocapTester
 from train.test_base import Tester
 import os
@@ -13,20 +13,28 @@ generator2 = DataGenerator("IEMOCAP")
 generator.generate_from_one_wav()
 generator2.generate_from_one_wav()
 
-generator3 = DataGenerator("CREMA-D",True)
-generator3.generate_noise_mixing_wav(0)
-generator3.generate_noise_mixing_wav(5)
-generator3.generate_noise_mixing_wav(10)
 
 
 generator4 = DataGenerator("IEMOCAP",True)
 generator4.generate_noise_mixing_wav(0)
 generator4.generate_noise_mixing_wav(5)
 generator4.generate_noise_mixing_wav(10)
+
+generator3 = DataGenerator("CREMA-D",True)
+generator3.generate_noise_mixing_wav(0)
+generator3.generate_noise_mixing_wav(5)
+generator3.generate_noise_mixing_wav(10)
+
 # remove unused data
 # TODO
 
 # train
+IemocapNoiseTrainer(0).run()
+IemocapNoiseTrainer(5).run()
+IemocapNoiseTrainer(10).run()
+CremaNoiseTrainer(0).run()
+CremaNoiseTrainer(5).run()
+CremaNoiseTrainer(10).run()
 # CremaTrainer().run()
 # IemocapTrainer().run()
 

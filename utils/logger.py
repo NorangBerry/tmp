@@ -27,7 +27,7 @@ class Logger:
         id = '-'.join(id)
         return id
     def __append_log(self,log):
-        with open(self.filename,"r+") as file:
+        with open(self.filename,"w+") as file:
             file_data = {}
             file_read = file.read()
             if len(file_read) != 0:
