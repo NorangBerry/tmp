@@ -8,6 +8,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]='0'
 import torch.optim as optim
 import torch
 import random
+from enum import Enum
 
 class DataType(Enum):
     X_TRAIN = 1
