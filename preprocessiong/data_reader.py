@@ -1,5 +1,4 @@
 import os
-from tqdm import tqdm
 
 class CremaReader:
     def __init__(self, data_path):
@@ -7,7 +6,7 @@ class CremaReader:
     def get_file_list(self):
         file_list = []
         for root, _, files in os.walk(self.data_path):
-            for audio_file in tqdm(files):
+            for audio_file in files:
                 audio_file:str = audio_file
 
                 if audio_file.split('.')[-1] !='wav' \
@@ -28,7 +27,7 @@ class MusanReader:
     def get_file_list(self):
         file_list = []
         for root, _, files in os.walk(self.data_path):
-            for audio_file in tqdm(files):
+            for audio_file in files:
                 audio_file:str = audio_file
 
                 if audio_file.split('.')[-1] !='wav' \
