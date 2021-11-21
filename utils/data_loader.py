@@ -13,7 +13,7 @@ import random
 import pickle
 
 def load_IEMOCAP_WC(train_path, fold):
-    train_filename = "%s.pickle"  %(train_path)
+    train_filename = f"{train_path}.pickle"
     
     with open(train_filename, 'rb') as handle:
         data = pickle.load(handle)
@@ -46,7 +46,7 @@ def load_IEMOCAP_WC(train_path, fold):
     return x_train, y_train, x_valid, y_valid, x_test, y_test, ys_data
         
 def load_CREMAD_WC(train_path):
-    train_filename = "%s.pickle"  %(train_path)
+    train_filename = f"{train_path}.pickle"
     
     with open(train_filename, 'rb') as handle:
         data = pickle.load(handle)
