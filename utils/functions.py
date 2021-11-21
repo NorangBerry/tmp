@@ -4,6 +4,7 @@ Created on Wed Nov 25 09:18:19 2020
 
 @author: Youngdo Ahn
 """
+import math
 from torch.autograd import Function
 from sklearn.metrics import accuracy_score, balanced_accuracy_score
 from torch.nn import functional as F
@@ -12,6 +13,13 @@ from torch.autograd import Variable
 import numpy as np
 import torch
 import os
+
+def rms(wav:np.ndarray):
+    return np.sqrt(np.mean(wav**2))
+
+def snr(signal:np.ndarray,noise:np.ndarray):
+    return 20 * math.log(rms(signal)/rms(noise),10)
+    
 
 class ReverseLayerF(Function):
 

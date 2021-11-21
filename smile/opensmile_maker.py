@@ -83,13 +83,13 @@ class CREMASmileMaker(SmileMaker):
         with open(filename, 'wb') as handle:
            pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    def parse_file_name(self,filename):
+    def parse_file_name(self,filename:str):
         file_info_list = filename.split('_')
         label = file_info_list[2].lower()
         speaker = int(file_info_list[0])-1001
         return label,speaker
 
-    def is_valid_file(self,filename):
+    def is_valid_file(self,filename:str):
         if filename.split('_')[2] in ['NEU','HAP','SAD','ANG']:
             return True
         return False

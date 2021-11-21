@@ -1,10 +1,11 @@
 import json
 from smile.data_generator import DataGenerator
 from smile.opensmile_maker import CREMASmileMaker, SmileMaker
-from attack.attacker import Attacker, FeatureAttacker, FixedNoiseAttacker, RandomAttacker
 from utils.logger import Logger
 from utils.setting import ROOT_PATH
-from train.train import CremaTester, CremaTrainer, IemocapTester, IemocapTrainer, Tester, Trainer
+from train.train import CremaTrainer, IemocapTrainer, Trainer
+from train.test import CremaTester,IemocapTester
+from train.test_base import Tester
 import os
 
 generator = DataGenerator("CREMA-D")
@@ -12,6 +13,10 @@ generator2 = DataGenerator("IEMOCAP")
 generator.generate_from_one_wav()
 generator2.generate_from_one_wav()
 
+generator3 = DataGenerator("CREMA-D",True)
+generator3.generate_noise_mixing_wav(0)
+generator3.generate_noise_mixing_wav(5)
+generator3.generate_noise_mixing_wav(10)
 # remove unused data
 # TODO
 
