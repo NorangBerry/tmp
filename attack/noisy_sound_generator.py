@@ -11,21 +11,20 @@ class NoisySoundGenerator():
     def __init__(self,voice_list,noise_list):
         self.voice_list = voice_list
         self.noise_list = noise_list
-        # self.wav_path = os.path.join(save_path,"wav")
-        # self.smile_dir = os.path.join(save_path,"opensmile")
-        # self.noise_pickle_path = os.path.join(ROOT_PATH, "musan","opensmile")
 
     def combine_noise(self,voice_file:str,noise_file:str,save_path:str,dB_diff:float):
+        makedirs(save_path)
+        voice_filename = re.split('[/\\\\.]',voice_file)[-2]# voice_file.split('/\\')[-1].split('.')[0]
+        noise_filename = re.split('[/\\\\.]',noise_file)[-2]#noise_file.split('/\\')[-1].split('.')[0]
+        file_path = os.path.join(save_path,f"{voice_filename}_{noise_filename}.wav")
+        if os.path.exists(file_path):
+            return
+
         voice = AudioSegment.from_file(voice_file)
         noise = AudioSegment.from_file(noise_file)
         combined:AudioSegment = voice.overlay(noise,gain_during_overlay=dB_diff)
-        voice_filename = re.split('[/\\\\.]',voice_file)[-2]# voice_file.split('/\\')[-1].split('.')[0]
-        noise_filename = re.split('[/\\\\.]',noise_file)[-2]#noise_file.split('/\\')[-1].split('.')[0]
-
-        makedirs(save_path)
-        file_path = os.path.join(save_path,f"{voice_filename}_{noise_filename}.wav")
+        
         combined.export(file_path, format='wav')
-
     # def amplitude_noise_to_targe_snr(self,target:float,now:float,noise:np.ndarray):
     #     factor = 10^(now - target/20)
     #     return noise*factor
