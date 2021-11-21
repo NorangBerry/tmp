@@ -1,6 +1,6 @@
 import os
 from attack.noisy_sound_generator import NoisySoundGenerator
-from preprocessiong.data_reader import CremaReader, MusanReader
+from preprocessiong.data_reader import CremaReader, IemocapReader, MusanReader
 from smile.opensmile_maker import CREMASmileMaker, IemocapSmileMaker
 from tqdm import tqdm
 
@@ -42,6 +42,8 @@ class DataGenerator:
         reader = None
         if self.dataset == "CREMA-D":
             reader = CremaReader(self.data_path)
+        elif self.dataset == "IEMOCAP":
+            reader = IemocapReader(self.data_path)
         return reader
 
     def get_noise_maker(self):

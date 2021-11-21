@@ -149,7 +149,9 @@ class IemocapSmileMaker(SmileMaker):
                             infos = line.split('\t')
                             filename = infos[1]
                             emotion = infos[2].upper()
-                            if emotion not in ['NEU','HAP','SAD','ANG']:
+                            if emotion == 'EXC':
+                                emotion = 'HAP'
+                            if emotion not in ['NEU','HAP','SAD','ANG','EXC']:
                                 continue
                             self.wav_emotion_dict[f"{filename}.wav"] = emotion
 

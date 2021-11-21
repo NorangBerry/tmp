@@ -17,6 +17,12 @@ generator3 = DataGenerator("CREMA-D",True)
 generator3.generate_noise_mixing_wav(0)
 generator3.generate_noise_mixing_wav(5)
 generator3.generate_noise_mixing_wav(10)
+
+
+generator4 = DataGenerator("IEMOCAP",True)
+generator4.generate_noise_mixing_wav(0)
+generator4.generate_noise_mixing_wav(5)
+generator4.generate_noise_mixing_wav(10)
 # remove unused data
 # TODO
 
