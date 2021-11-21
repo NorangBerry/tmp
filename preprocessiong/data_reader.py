@@ -35,7 +35,7 @@ class MusanReader:
                 or audio_file[0] == '.' \
                 or self.is_valid_file(audio_file) == False:
                     continue
-                file_list.append(audio_file)
+                file_list.append(os.path.join(root,audio_file))
         return file_list
 
     def is_valid_file(self,filename):
