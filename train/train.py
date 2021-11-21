@@ -238,8 +238,6 @@ class Tester(ModelRunner):
         self.test_result = {
             "Accuracy":np.mean(test_result)
         }
-        print(test_result)
-        print(test_result.shape)
 
     def get_result(self) -> dict:
         tokens = self.trainDB.split('-')
@@ -255,7 +253,7 @@ class Tester(ModelRunner):
         }
         
     def __parse_dataset_folder_info(self,folder:str):
-        tokens = folder.split('-')
+        tokens = folder.split('_')
         info = {
                 "BaseDB":None,
                 "NoiseType":None,
@@ -266,7 +264,6 @@ class Tester(ModelRunner):
         elif len(tokens) > 2 and tokens[1] == "noisy":
             info["NoiseType"] = "noisy"
             info["dB"] = f"{tokens[2]}dB"
-
         elif len(tokens) > 2 and tokens[1] == "gradient":
             info["NoiseType"] = "gradient"
             info["gradient"] = f"0.{tokens[2]}"
@@ -287,13 +284,13 @@ class IemocapTrainer(Trainer):
 
 class CremaTester(Tester):
     def __init__(self,testDB,fold):
-        super().__init__(self.trainDB,testDB,fold)
+        super().__init__("CREMA-D",testDB,fold)
     def get_n_fold(self):
         return 1
 
 
 class IemocapTester(Tester):
     def __init__(self,testDB,fold):
-        super().__init__(self.trainDB,testDB,fold)
+        super().__init__("IEMOCAP",testDB,fold)
     def get_n_fold(self):
         return 10
