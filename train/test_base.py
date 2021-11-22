@@ -1,5 +1,5 @@
 from train.base import DataType, ModelRunner
-from utils.setting import ROOT_PATH,device
+from utils.setting import device, get_pickle_path
 from utils.data_loader import load_emotion_corpus_WC
 import os 
 os.environ["CUDA_VISIBLE_DEVICES"]='0'
@@ -13,7 +13,7 @@ class Tester(ModelRunner):
         self.trainDB:str = train_dataset
         self.test_fold:int = test_fold
         self.test_dataset:str = test_dataset
-        self.data_path:str = os.path.join(ROOT_PATH,self.test_dataset,"opensmile","emobase2010")
+        self.data_path:str = get_pickle_path(self.test_dataset)
         self.test_result = {}
 
     def set_data(self,fold):
@@ -58,7 +58,7 @@ class Tester(ModelRunner):
         }
 
     def get_result(self) -> dict:
-        tokens = self.trainDB.split('-')
+        tokens = self.trainDB.split('_')
         train_set = self.__parse_dataset_folder_info(self.trainDB)
         test_set = self.__parse_dataset_folder_info(self.test_dataset)
         test_set["Fold"] = self.test_fold
@@ -79,10 +79,10 @@ class Tester(ModelRunner):
         info["BaseDB"] = tokens[0]
         if len(tokens) == 1:
             info["NoiseType"] = "clean"
-        elif len(tokens) > 2 and tokens[1] == "noisy":
+        elif len(tokens) >= 2 and tokens[1] == "noisy":
             info["NoiseType"] = "noisy"
             info["dB"] = f"{tokens[2]}dB"
-        elif len(tokens) > 2 and tokens[1] == "gradient":
+        elif len(tokens) >= 2 and tokens[1] == "gradient":
             info["NoiseType"] = "gradient"
             info["gradient"] = f"0.{tokens[2]}"
         return info

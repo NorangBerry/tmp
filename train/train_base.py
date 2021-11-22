@@ -1,5 +1,5 @@
 from train.base import DataType, ModelRunner
-from utils.setting import ROOT_PATH,device, get_model_dir
+from utils.setting import device, get_model_dir, get_pickle_path
 from utils.data_loader import load_emotion_corpus_WC
 import random
 import os 
@@ -15,7 +15,7 @@ class Trainer(ModelRunner):
         self.init_setting()
         self.dataset = dataset
         self.model_dir = get_model_dir(self.dataset)
-        self.data_path = os.path.join(ROOT_PATH,self.dataset,"opensmile","emobase2010")
+        self.data_path = get_pickle_path(self.dataset)
 
     def set_data(self,fold):
         
@@ -123,7 +123,7 @@ class Trainer(ModelRunner):
 class NoiseTrainer(Trainer):
     def __init__(self,dataset,dB):
         super().__init__(dataset)
-        self.model_dir = os.path.join(ROOT_PATH,f"{self.dataset}_{dB}","emobase2010","WC0802_JY")
+        self.model_dir = get_model_dir(self.dataset,"noisy",dB)
 
     def set_data(self,fold):
         x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test = load_emotion_corpus_WC(self.dataset, self.data_path,fold)

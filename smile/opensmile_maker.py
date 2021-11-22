@@ -5,7 +5,7 @@ import pickle
 import re
 
 import numpy as np
-from utils.setting import SMILE_CONFIG_PATH, DATASET_PATH, SMILE_EXE_PATH
+from utils.setting import SMILE_CONFIG_PATH, SMILE_EXE_PATH
 from tqdm import tqdm
 
 

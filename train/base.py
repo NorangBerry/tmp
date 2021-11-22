@@ -4,7 +4,7 @@ import os
 
 from utils.functions import wLoss
 from .model import BaseModel
-from utils.setting import crema_setting, ROOT_PATH, get_model_dir
+from utils.setting import crema_setting, get_model_dir, get_pickle_path
 import random
 os.environ["CUDA_VISIBLE_DEVICES"]='0'
 import torch.optim as optim
@@ -26,7 +26,7 @@ class ModelRunner():
         self.init_setting()
         self.dataset = dataset
         self.model_dir = get_model_dir(self.dataset)
-        self.data_path = os.path.join(ROOT_PATH,self.dataset,"opensmile","emobase2010")
+        self.data_path = get_pickle_path(self.dataset)
 
     def init_setting(self):
         self.setting = crema_setting

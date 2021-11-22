@@ -5,7 +5,7 @@ from utils.data_loader import load_emotion_corpus_WC
 from utils.functions import normalization_ops
 import numpy as np
 
-from utils.setting import ROOT_PATH
+from utils.setting import get_pickle_path
 class CremaTrainer(Trainer):
     def __init__(self):
         super().__init__("CREMA-D")
@@ -16,7 +16,7 @@ class CremaTrainer(Trainer):
 class CremaNoiseTrainer(Trainer):
     def __init__(self,dB):
         super().__init__("CREMA-D")
-        self.noise_path = os.path.join(ROOT_PATH,f"{self.dataset}_{dB}","opensmile","emobase2010")
+        self.noise_path = get_pickle_path(self.dataset,"noisy",dB)
 
 
     def set_data(self,fold):
@@ -66,13 +66,13 @@ class IemocapTrainer(Trainer):
 class CremaNoiseTrainer(NoiseTrainer):
     def __init__(self,dB):
         super().__init__("CREMA-D",dB)
-        self.noise_path = os.path.join(ROOT_PATH,f"{self.dataset}_{dB}","opensmile","emobase2010")
+        self.noise_path = get_pickle_path(self.dataset,"noisy",dB)
     def get_n_fold(self):
         return 1
 
 class IemocapNoiseTrainer(NoiseTrainer):
     def __init__(self,dB):
         super().__init__("IEMOCAP",dB)
-        self.noise_path = os.path.join(ROOT_PATH,f"{self.dataset}_{dB}","opensmile","emobase2010")
+        self.noise_path = get_pickle_path(self.dataset,"noisy",dB)
     def get_n_fold(self):
         return 10

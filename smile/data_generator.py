@@ -4,17 +4,17 @@ from preprocessiong.data_reader import CremaReader, IemocapReader, MusanReader
 from smile.opensmile_maker import CREMASmileMaker, IemocapSmileMaker, SmileMaker
 from tqdm import tqdm
 
-from utils.setting import DATASET_PATH
+from utils.setting import get_dataset_folder
 
 
 class DataGenerator:
     def __init__(self,dataset,noise=False):
         self.dataset = dataset
-        self.data_path = os.path.join(DATASET_PATH,dataset)
+        self.data_path = get_dataset_folder(dataset)
         self.generate_target_path = self.data_path
         self.is_noise = noise
         if self.is_noise == True:
-            self.noise_path = os.path.join(DATASET_PATH,"musan")
+            self.noise_path = get_dataset_folder("musan")
 
     def generate_from_one_wav(self):
         # make opensmile csv
@@ -27,7 +27,7 @@ class DataGenerator:
         # remove unused data
 
     def generate_noise_mixing_wav(self,dB):
-        self.generate_target_path = os.path.join(DATASET_PATH,f"{self.dataset}_{dB}")
+        self.generate_target_path = get_dataset_folder(self.dataset,"noisy",dB)
 
         if self.pickle_exists() == True:
             return
