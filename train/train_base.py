@@ -113,13 +113,19 @@ class Trainer(ModelRunner):
         print(f'***SRC {self.dataset}  FOLD {fold}***********')
         return super().run_fold(fold)
 
+    def run(self):
+        model_path = os.path.join(self.model_dir,f"WC_fold{self.get_n_fold()-1}_seed{self.setting.n_seeds-1}.pth")
+        if os.path.exists(model_path):
+            return
+        super().run()
+
+
 class NoiseTrainer(Trainer):
     def __init__(self,dataset,dB):
         super().__init__(dataset)
         self.model_dir = os.path.join(ROOT_PATH,f"{self.dataset}_{dB}","emobase2010","WC0802_JY")
 
     def set_data(self,fold):
-        
         x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test = load_emotion_corpus_WC(self.dataset, self.data_path,fold)
         x_train2, y_train2, x_valid2, y_valid2, x_test2, y_test2, ys_test2 = load_emotion_corpus_WC(self.dataset, self.noise_path,fold)
         x_train = np.concatenate((x_train,x_train2),axis=0)

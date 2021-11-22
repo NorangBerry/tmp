@@ -37,7 +37,7 @@ class DataGenerator:
 
 
         smile_maker = self.get_smile_maker()
-        # smile_maker.make_smile_csv()
+        smile_maker.make_smile_csv()
         # make pickle zipped data
         smile_maker.make_pickle_file()
         # for file in tqdm(reader.get_file_list()):
