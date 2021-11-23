@@ -1,12 +1,8 @@
-import json
 from smile.data_generator import DataGenerator
-from smile.opensmile_maker import CREMASmileMaker, SmileMaker
 from utils.logger import Logger
-from utils.setting import ROOT_PATH
-from train.train import CremaNoiseTrainer, CremaTrainer, IemocapNoiseTrainer, IemocapTrainer, Trainer
-from train.test import CremaNoiseTester, CremaTester,IemocapTester
+from train.train import CremaNoiseTrainer, CremaTrainer, IemocapNoiseTrainer, IemocapTrainer
+from train.test import CremaNoiseTester, CremaTester, IemocapNoiseTester,IemocapTester
 from train.test_base import Tester
-import os
 
 generator = DataGenerator("CREMA-D")
 generator2 = DataGenerator("IEMOCAP")
@@ -44,10 +40,11 @@ testers:'list[Tester]' = [
     IemocapTester("IEMOCAP",1),
 ]
 for dB in [0,5,10]:
-    testers.append(CremaNoiseTester("CREMA-D",1,dB))
-    testers.append(CremaNoiseTester("IEMOCAP",1,dB))
-    testers.append(IemocapNoiseTrainer("CREMA-D",1,dB))
-    testers.append(IemocapNoiseTrainer("IEMOCAP",1,dB))
+    testers.append(CremaTester(f"CREMA-D_noisy_{dB}",1))
+    testers.append(IemocapTester(f"CREMA-D_noisy_{dB}",1))
+    for dB2 in [0,5,10]:
+        testers.append(CremaNoiseTester(f"CREMA-D_noisy_{dB2}",1,dB))
+        testers.append(IemocapNoiseTester(f"CREMA-D_noisy_{dB2}",1,dB))
 
 logger = Logger()
 for tester in testers:
