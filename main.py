@@ -1,8 +1,13 @@
+import json
+from attack.fgsm import FgsmPickleMaker
 from smile.data_generator import DataGenerator
 from utils.logger import Logger
-from train.train import CremaNoiseTrainer, CremaTrainer, IemocapNoiseTrainer, IemocapTrainer
-from train.test import CremaNoiseTester, CremaTester, IemocapNoiseTester,IemocapTester
+from utils.setting import ROOT_PATH, get_dataset_folder, get_pickle_path
+from train.train import CremaNoiseTrainer, CremaTrainer, IemocapNoiseTrainer, IemocapTrainer, Trainer
+from train.test import CremaNoiseTester, CremaTester,IemocapTester
 from train.test_base import Tester
+
+FgsmPickleMaker("CREMA-D").generate(get_pickle_path("CREMA-D","gradient",0.05),0.05)
 
 generator = DataGenerator("CREMA-D")
 generator2 = DataGenerator("IEMOCAP")
@@ -46,8 +51,9 @@ for dB in [0,5,10]:
         testers.append(CremaNoiseTester(f"CREMA-D_noisy_{dB2}",1,dB))
         testers.append(IemocapNoiseTester(f"CREMA-D_noisy_{dB2}",1,dB))
 
-logger = Logger()
-for tester in testers:
-    tester.run()
-    result = tester.get_result()
-    logger.log(result)
+
+# logger = Logger()
+# for tester in testers:
+#     tester.run()
+#     result = tester.get_result()
+#     logger.log(result)
