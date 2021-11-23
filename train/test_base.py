@@ -17,7 +17,8 @@ class Tester(ModelRunner):
         self.test_result = {}
 
     def set_data(self,fold):
-        x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test = load_emotion_corpus_WC(self.test_dataset, self.data_path, self.test_fold)
+        dataset = self.test_dataset.split('_')[0]
+        x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test = load_emotion_corpus_WC(dataset, self.data_path, self.test_fold)
         tr_n_samples = min(100000,len(y_train))
 
         ls_train = np.eye(4)[y_train]
