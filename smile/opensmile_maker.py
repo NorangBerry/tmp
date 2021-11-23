@@ -79,11 +79,11 @@ class CREMASmileMaker(SmileMaker):
 
         x_data = np.array(x_data,dtype=float)
         y_data = np.array(y_data)
-        data = {'x_data':x_data,
-                'y_data':y_data,
-                's_data':s_data,
+        data = {"x_data":x_data,
+                "y_data":y_data,
+                "s_data":s_data,
                 # 'ys_data':ys_data,
-                'file_name':file_name_data}
+                "file_name":file_name_data}
         filename = os.path.join(self.output_dir,"emobase2010.pickle")
         with open(filename, 'wb') as handle:
            pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -126,10 +126,9 @@ class IemocapSmileMaker(SmileMaker):
                 file_name_data.append(file.replace('.csv','.wav'))
 
         x_data = np.array(x_data,dtype=float)
-        data = {'x_data':x_data, 'file_name':file_name_data}
-        data = {'x_data':x_data,
-                'y_data':y_data,
-                's_data':s_data,
+        data = {"x_data":x_data,
+                "y_data":y_data,
+                "s_data":s_data,
                 # 'ys_data':ys_data,
                 'file_name':file_name_data}
         filename = os.path.join(self.output_dir,"emobase2010.pickle")
