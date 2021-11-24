@@ -4,11 +4,11 @@ from smile.data_generator import DataGenerator
 from utils.logger import Logger
 from utils.setting import ROOT_PATH, get_dataset_folder, get_pickle_path
 from train.train import CremaNoiseTrainer, CremaTrainer, IemocapNoiseTrainer, IemocapTrainer, Trainer
-from train.test import CremaNoiseTester, CremaTester,IemocapTester
+from train.test import CremaNoiseTester, CremaTester, IemocapNoiseTester,IemocapTester
 from train.test_base import Tester
 
 FgsmPickleMaker("CREMA-D").generate(get_pickle_path("CREMA-D","gradient",0.05),0.05)
-
+exit(0)
 generator = DataGenerator("CREMA-D")
 generator2 = DataGenerator("IEMOCAP")
 generator.generate_from_one_wav()
