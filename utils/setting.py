@@ -21,6 +21,8 @@ def get_model_dir(dataset,type=None,value=None):
     return os.path.join(get_dataset_folder(dataset,type,value),"emobase2010","WC0802_JY")
 
 def get_dataset_folder(dataset,type=None,value=None):
+    if type == "gradient":
+        value = f"{value:.2f}"[-2:]
     if type == None:
         return os.path.join(ROOT_PATH,dataset)
     else:

@@ -76,3 +76,18 @@ class IemocapNoiseTrainer(NoiseTrainer):
         self.noise_path = get_pickle_path(self.dataset,"noisy",dB)
     def get_n_fold(self):
         return 10
+
+
+class CremaFgsmTrainer(NoiseTrainer):
+    def __init__(self,epsilon):
+        super().__init__("CREMA-D",epsilon)
+        self.noise_path = get_pickle_path(self.dataset,"gradient",epsilon)
+    def get_n_fold(self):
+        return 1
+
+class IemocapFgsmTrainer(NoiseTrainer):
+    def __init__(self,epsilon):
+        super().__init__("IEMOCAP",epsilon)
+        self.noise_path = get_pickle_path(self.dataset,"gradient",epsilon)
+    def get_n_fold(self):
+        return 10

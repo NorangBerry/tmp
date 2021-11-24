@@ -58,11 +58,42 @@ class Tester(ModelRunner):
             "Accuracy":np.mean(test_result)
         }
 
+
+    def run_real(self,alpha=0):
+        score = 0
+        total = 0
+        for fold in range(self.get_n_fold()):
+            models = []
+            ls_train,n_minibatch,tr_n_samples = self.set_data(fold)
+            for seed in range(self.setting.n_seeds):
+                models.append(torch.load(os.path.join(self.model_dir,f"WC_fold{fold}_seed{seed}.pth")))
+            total += len(self.dataloader[DataType.X_TEST])
+            for x_data,y_data in zip(self.dataloader[DataType.X_TEST],self.dataloader[DataType.Y_TEST]):
+                x_data = torch.Tensor(x_data).to(device).cuda().unsqueeze(0)
+                # y_data = torch.Tensor(y_data).to(device).long().cuda()
+                
+                result = [0,0,0,0]
+                for model in models:
+                    class_output, _, _ = model(input_data=x_data, alpha=alpha)
+                pred = class_output.data.max(1, keepdim=True)[1]
+                result[pred.item()] += 1
+
+                # index_list = 
+                if y_data == result.index(max(result)):
+                    score += 1
+
+        accuracy = (score * 1.0)/total * 100
+        print(f"{self.dataset}->{self.test_dataset} Test result final accuracy is {accuracy:.2f}")
+
+        self.test_result = {
+            "Accuracy":accuracy
+        }
+
     def get_result(self) -> dict:
         tokens = self.trainDB.split('_')
         train_set = self.__parse_dataset_folder_info(self.trainDB)
         test_set = self.__parse_dataset_folder_info(self.test_dataset)
-        test_set["Fold"] = self.test_fold
+        # test_set["Fold"] = self.test_fold
         train_set["BaseDB"] = tokens[0]
         return {
             "TrainSet": train_set,

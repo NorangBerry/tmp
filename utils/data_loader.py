@@ -12,7 +12,6 @@ import pickle
 
 def load_IEMOCAP_WC(train_path, fold):
     train_filename = f"{train_path}.pickle"
-    
     with open(train_filename, 'rb') as handle:
         data = pickle.load(handle)
     x_data  = np.array(data["x_data"],dtype=float)
@@ -65,14 +64,15 @@ def load_CREMAD_WC(train_path):
                     vl_list[si] = 1
                 else:
                     te_list[si] = 1
-    x_train = data["x_data"][tr_list==1] # 3874
-    y_train = data["y_data"][tr_list==1]
+    # print(data["x_data"])
+    x_train = np.array(data["x_data"])[tr_list==1] # 3874
+    y_train = np.array(data["y_data"])[tr_list==1]
     
-    x_valid = data["x_data"][vl_list==1] # 485
-    y_valid = data["y_data"][vl_list==1]
+    x_valid = np.array(data["x_data"])[vl_list==1] # 485
+    y_valid = np.array(data["y_data"])[vl_list==1]
     
-    x_test = data["x_data"][te_list==1] # 540
-    y_test = data["y_data"][te_list==1]
+    x_test = np.array(data["x_data"])[te_list==1] # 540
+    y_test = np.array(data["y_data"])[te_list==1]
     ys_test = []#data['ys_data'][te_list==1]
     #ys_test = np.eye(4)[y_test]
     # ys_test = ys_test.T[:4]

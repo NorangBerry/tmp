@@ -22,56 +22,75 @@ class FgsmPickleMaker:
         return data
 
     def __load_model(self,fold,seed):
-        my_net:torch.nn.Module = torch.load(os.path.join(self.model_dir,f"WC_fold{fold}_seed{seed}.pth"))
-        my_net.eval()
-        return my_net
+        models = []
+        fold = 0
+        while True:
+            seed = 0
+            while True:
+                model_path = os.path.join(self.model_dir,f"WC_fold{fold}_seed{seed}.pth")
+                if os.path.exists(model_path) == False:
+                    break
+                my_net:torch.nn.Module = torch.load(model_path)
+                my_net.eval()
+                models.append(my_net)
+                seed += 1
+            if seed == 0:
+                break
+            fold += 1
+        return models
         
-    def fsgm(self,source:np.ndarray,data_grad:torch.Tensor,epsilon:float):
-        sign_data_grad = data_grad.sign().cpu().numpy()
-        print(sign_data_grad)
-        fsgm_source = source + epsilon*sign_data_grad
-        return fsgm_source
+    def fsgm(self,source:np.ndarray,data_grads:torch.Tensor,epsilon:float):
+        fsgm_sources = []
+        for data_grad in data_grads:
+            sign_data_grad = data_grad.sign().cpu().numpy()
+            fsgm_source = source + epsilon*sign_data_grad
+            fsgm_sources.append(fsgm_source)
+        return fsgm_sources
 
-    def get_model_result(self,model,x_data,y_data,ls_train):
+    def get_model_result(self,models,x_data,y_data,ls_train):
         x_eval = torch.Tensor(x_data).to(device).cuda().unsqueeze(0)
         x_eval = x_eval
         x_eval.requires_grad = True
         y_eval = torch.Tensor([y_data]).to(device).long().cuda()
         ls_train_batch = torch.Tensor(ls_train).to(device).long().cuda()
-        class_output,domain_output, rvs_domain_output = model(input_data=x_eval, alpha=0)
-        pred = class_output.data.max(1, keepdim=True)[1]
-        if pred.item() != y_eval.item():
-            return None, pred
         
-        loss_func = wLoss().cuda()
-        loss = loss_func(class_output, y_eval, ls_train_batch)
-        model.zero_grad()
-        loss.backward()
-        data_grad = x_eval.grad.data
-        return data_grad, pred
+        data_grads = []
+        for model in models:
+            class_output,domain_output, rvs_domain_output = model(input_data=x_eval, alpha=0)
+            pred = class_output.data.max(1, keepdim=True)[1]
+            if pred.item() != y_eval.item():
+                continue
+            loss_func = wLoss().cuda()
+            loss = loss_func(class_output, y_eval, ls_train_batch)
+            model.zero_grad()
+            loss.backward()
+            data_grad = x_eval.grad.data
+            data_grads.append(data_grad)
+        return data_grads
 
 
     def generate(self,save_path,alpha):
+        filename = f"{save_path}.pickle"
+        if os.path.exists(filename):
+            return
         dataset = self.__load_dataset()
-        x_data, y_data = dataset["x_data"],dataset["y_data"]
+        x_data, y_data, s_data = dataset["x_data"],dataset["y_data"],dataset["s_data"]
         ls_trains = np.eye(4)[y_data]
-        new_x_data = []
         #TODO it is sample
-        model = self.__load_model(0,1)
-        for x,y,ls_train in zip(x_data,y_data,ls_trains):
+        models = self.__load_model(0,1)
+
+        new_dataset = {"x_data":[],"y_data":[],"s_data":[]}
+        for x,y,s,ls_train in zip(x_data,y_data,s_data,ls_trains):
             x = np.array(x)
-            gradient, label= self.get_model_result(model,x,y,ls_train)
-            if y != label.item():
-                new_x_data.append(x)
-                continue
-            new_x_data.append(self.fsgm(x,gradient,alpha))
+            gradients = self.get_model_result(models,x,y,ls_train)
+            fsgm_data = self.fsgm(x,gradients,alpha)
+            for fsgm_data_unit in fsgm_data:
+                new_dataset["x_data"].append(fsgm_data_unit[0])
+                new_dataset["y_data"].append(y)
+                new_dataset["s_data"].append(s)
         
         makedirs(save_path)
-
-        dataset["x_data"] = new_x_data
-        filename = os.path.join(save_path,"emobase2010.pickle")
         with open(filename, 'wb') as handle:
-            print(filename)
-            pickle.dump(dataset, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(new_dataset, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
             
