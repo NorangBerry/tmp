@@ -1,8 +1,8 @@
 import os
 from train.base import DataType
-from train.train_base import NoiseTrainer, Trainer
+from train.train_base import FgsmTrainer, NoiseTrainer, Trainer
 from utils.data_loader import load_emotion_corpus_WC
-from utils.functions import normalization_ops
+from utils.functions import karyogram, normalization_ops
 import numpy as np
 
 from utils.setting import get_pickle_path
@@ -20,7 +20,7 @@ class CremaNoiseTrainer(Trainer):
 
 
     def set_data(self,fold):
-        
+        karyogram()
         x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test = load_emotion_corpus_WC(self.dataset, self.data_path,fold)
         x_train2, y_train2, x_valid2, y_valid2, x_test2, y_test2, ys_test2 = load_emotion_corpus_WC(self.dataset, self.noise_path,fold)
         x_train = np.concatenate((x_train,x_train2),axis=0)
@@ -78,14 +78,14 @@ class IemocapNoiseTrainer(NoiseTrainer):
         return 10
 
 
-class CremaFgsmTrainer(NoiseTrainer):
+class CremaFgsmTrainer(FgsmTrainer):
     def __init__(self,epsilon):
         super().__init__("CREMA-D",epsilon)
         self.noise_path = get_pickle_path(self.dataset,"gradient",epsilon)
     def get_n_fold(self):
         return 1
 
-class IemocapFgsmTrainer(NoiseTrainer):
+class IemocapFgsmTrainer(FgsmTrainer):
     def __init__(self,epsilon):
         super().__init__("IEMOCAP",epsilon)
         self.noise_path = get_pickle_path(self.dataset,"gradient",epsilon)

@@ -2,9 +2,9 @@ import os
 import pickle
 
 import torch
-from utils.functions import makedirs, wLoss
+from utils.functions import makedirs, normalization_ops, wLoss
 import numpy as np
-
+from tqdm import tqdm
 from utils.setting import get_dataset_folder, get_model_dir, device, get_pickle_path
 
 class FgsmPickleMaker:
@@ -75,12 +75,17 @@ class FgsmPickleMaker:
             return
         dataset = self.__load_dataset()
         x_data, y_data, s_data = dataset["x_data"],dataset["y_data"],dataset["s_data"]
+        
+        feat_mu = np.mean(x_data,axis=0)
+        feat_st = np.std(x_data, axis=0)
+        
+        x_data  = normalization_ops(feat_mu, feat_st, x_data)
         ls_trains = np.eye(4)[y_data]
         #TODO it is sample
         models = self.__load_model(0,1)
 
         new_dataset = {"x_data":[],"y_data":[],"s_data":[]}
-        for x,y,s,ls_train in zip(x_data,y_data,s_data,ls_trains):
+        for x,y,s,ls_train in tqdm(zip(x_data,y_data,s_data,ls_trains),total=len(x_data)):
             x = np.array(x)
             gradients = self.get_model_result(models,x,y,ls_train)
             fsgm_data = self.fsgm(x,gradients,alpha)

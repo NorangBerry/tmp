@@ -133,3 +133,23 @@ def wc_evaluation(model, x_list, y_list, alpha, device):
         eval_ua.append(balanced_accuracy_score(y_eval.data.cpu(),pred.data.cpu())*100)
         del x_eval, y_eval
     return eval_wa, eval_ua
+
+
+import tracemalloc
+tracemalloc.start()
+my_snapshot = None
+
+def karyogram():
+    # 값을 계속 사용해야 하므로 전역 변수에 저장한다
+    global my_snapshot
+    if not my_snapshot:
+        # 최초 메모리 상태를 저장한다
+        my_snapshot = tracemalloc.take_snapshot()
+    else:
+        lines = []
+        # 현재 메모리 상태를 최초와 비교하여 얼마나 차이가 나는지에 대한 통계를 구한다
+        top_stats = tracemalloc.take_snapshot().compare_to(my_snapshot, 'lineno')
+        # 메모리 사용량이 많은 순서대로 10개를 구하여 출력한다
+        for stat in top_stats[:10]:
+            lines.append(str(stat))
+        print('\n'.join(lines), flush=True)

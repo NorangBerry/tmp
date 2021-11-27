@@ -1,3 +1,5 @@
+from datetime import datetime
+import gc
 from train.base import DataType, ModelRunner
 from utils.setting import device, get_model_dir, get_pickle_path
 from utils.data_loader import load_emotion_corpus_WC
@@ -31,7 +33,7 @@ class Trainer(ModelRunner):
         x_train  = normalization_ops(feat_mu, feat_st, x_train)
         x_valid  = normalization_ops(feat_mu, feat_st, x_valid)
         x_test   = normalization_ops(feat_mu, feat_st, x_test)
-
+        del self.dataloader
         self.dataloader = {
             DataType.X_TRAIN:x_train,
             DataType.Y_TRAIN:y_train,
@@ -80,6 +82,9 @@ class Trainer(ModelRunner):
         return tmp_score, tmp_ua
     
     def run_seed(self,seed,ls_train,tr_n_samples,n_minibatch,fold):
+        model_path = os.path.join(self.model_dir,f"WC_fold{fold}_seed{seed}.pth")
+        if os.path.exists(model_path):
+            return 0,0
         self.set_random_seed(seed)
         self.init_network()
         
@@ -111,6 +116,9 @@ class Trainer(ModelRunner):
     def run_fold(self,fold):
         print('******** Dataset Loading ***********')
         print(f'***SRC {self.dataset}  FOLD {fold}***********')
+        model_path = os.path.join(self.model_dir,f"WC_fold{fold}_seed{self.setting.n_seeds-1}.pth")
+        if os.path.exists(model_path):
+            return [0],[0]
         return super().run_fold(fold)
 
     def run(self):
@@ -167,8 +175,16 @@ class FgsmTrainer(Trainer):
         self.model_dir = get_model_dir(self.dataset,"gradient",epsilon)
 
     def set_data(self,fold):
+        self.dataloader = {}
+        gc.collect()
+        begin = datetime.now()
         x_train, y_train, x_valid, y_valid, x_test, y_test, ys_test = load_emotion_corpus_WC(self.dataset, self.data_path,fold)
         x_train2, y_train2, x_valid2, y_valid2, x_test2, y_test2, ys_test2 = load_emotion_corpus_WC(self.dataset, self.noise_path,fold)
+        
+        end = datetime.now()
+        print(f"load time {end-begin}")
+        begin = end
+
         x_train = np.concatenate((x_train,x_train2),axis=0)
         y_train = np.concatenate((y_train,y_train2),axis=0)
         x_valid = np.concatenate((x_valid,x_valid2),axis=0)
@@ -176,6 +192,10 @@ class FgsmTrainer(Trainer):
         x_test = np.concatenate((x_test,x_test2),axis=0)
         y_test = np.concatenate((y_test,y_test2),axis=0)
         ys_test = np.concatenate((ys_test,ys_test2),axis=0)
+        
+        # end = datetime.now()
+        # print(f"merge time {end-begin}")
+        # begin = end
 
         tr_n_samples = min(100000,len(y_train))
 
@@ -189,6 +209,14 @@ class FgsmTrainer(Trainer):
         x_valid  = normalization_ops(feat_mu, feat_st, x_valid)
         x_test   = normalization_ops(feat_mu, feat_st, x_test)
 
+        end = datetime.now()
+        print(f"norm time {end-begin}")
+        begin = end
+
+        # if hasattr(self,"dataloader") and self.dataloader != None:
+        #     keys = self.dataloader.keys()
+        #     for key in keys:
+        #         del self.dataloader[key]
         self.dataloader = {
             DataType.X_TRAIN:x_train,
             DataType.Y_TRAIN:y_train,
@@ -198,4 +226,5 @@ class FgsmTrainer(Trainer):
             DataType.Y_TEST:y_test,
             DataType.YS_TEST:ys_test,
         }
+        gc.collect()
         return ls_train,n_minibatch,tr_n_samples

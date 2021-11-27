@@ -10,10 +10,17 @@ import numpy as np
 import random
 import pickle
 
+# preload = {}
+
 def load_IEMOCAP_WC(train_path, fold):
     train_filename = f"{train_path}.pickle"
+
+    # if train_filename in preload.keys():
+    #     data = preload[train_filename]
+    # else:
     with open(train_filename, 'rb') as handle:
         data = pickle.load(handle)
+            # preload[train_filename] = data
     x_data  = np.array(data["x_data"],dtype=float)
     y_data = np.array(data["y_data"],dtype=int)
     s_data  = np.array(data["s_data"],dtype=int)

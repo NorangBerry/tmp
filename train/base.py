@@ -27,6 +27,7 @@ class ModelRunner():
         self.dataset = dataset
         self.model_dir = get_model_dir(self.dataset)
         self.data_path = get_pickle_path(self.dataset)
+        self.dataloader = {}
 
     def init_setting(self):
         self.setting = crema_setting

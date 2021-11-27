@@ -102,6 +102,10 @@ class Tester(ModelRunner):
             "Result": self.test_result
         }
         
+    def delete(self):
+        del self.data_path
+        del self.dataloader
+        del self.dataset
     def __parse_dataset_folder_info(self,folder:str):
         tokens = folder.split('_')
         info = {
