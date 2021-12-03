@@ -172,7 +172,7 @@ class NoiseTrainer(Trainer):
 class FgsmTrainer(Trainer):
     def __init__(self,dataset,epsilon):
         super().__init__(dataset)
-        self.model_dir = get_model_dir(self.dataset,"gradient",epsilon)
+        self.model_dir = get_model_dir(self.dataset,"gradient",epsilon,True)
 
     def set_data(self,fold):
         self.dataloader = {}
@@ -185,13 +185,32 @@ class FgsmTrainer(Trainer):
         print(f"load time {end-begin}")
         begin = end
 
+        multiplier = len(x_train2)//len(x_train) 
+        if len(x_train2) % len(x_train) != 0:
+            multiplier += 1
+
+        x_train = np.tile(x_train,(multiplier,1))
         x_train = np.concatenate((x_train,x_train2),axis=0)
+        
+
+        y_train = np.tile(y_train,multiplier)
         y_train = np.concatenate((y_train,y_train2),axis=0)
+
+        x_valid = np.tile(x_valid,(multiplier,1))
         x_valid = np.concatenate((x_valid,x_valid2),axis=0)
+
+        y_valid = np.tile(y_valid,multiplier)
         y_valid = np.concatenate((y_valid,y_valid2),axis=0)
+
+        x_test = np.tile(x_test,(multiplier,1))
         x_test = np.concatenate((x_test,x_test2),axis=0)
+
+        y_test = np.tile(y_test,multiplier)
         y_test = np.concatenate((y_test,y_test2),axis=0)
+
+        ys_test = np.tile(ys_test,multiplier)
         ys_test = np.concatenate((ys_test,ys_test2),axis=0)
+
         
         # end = datetime.now()
         # print(f"merge time {end-begin}")

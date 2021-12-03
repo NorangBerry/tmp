@@ -1,5 +1,5 @@
 from train.base import DataType, ModelRunner
-from utils.setting import device, get_pickle_path
+from utils.setting import device, get_model_dir, get_pickle_path
 from utils.data_loader import load_emotion_corpus_WC
 import os 
 os.environ["CUDA_VISIBLE_DEVICES"]='0'
@@ -15,6 +15,11 @@ class Tester(ModelRunner):
         self.test_dataset:str = test_dataset
         self.data_path:str = get_pickle_path(self.test_dataset)
         self.test_result = {}
+        if "gradient" in train_dataset:
+            tokens = train_dataset.split('_')
+            value = float(f"0.{tokens[-1]}")
+            self.model_dir = get_model_dir(tokens[0],"gradient",value,True)
+
 
     def set_data(self,fold):
         dataset = self.test_dataset.split('_')[0]
@@ -98,7 +103,7 @@ class Tester(ModelRunner):
         return {
             "TrainSet": train_set,
             "TestSet": test_set,
-            "Model":"DANN",
+            "Model":"oversample-DANN",
             "Result": self.test_result
         }
         
