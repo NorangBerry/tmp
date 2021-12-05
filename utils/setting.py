@@ -17,7 +17,9 @@ SMILE_CONFIG_PATH = os.path.join(SMILE_PATH,"config", "emobase/emobase2010.conf"
 
 CREATED_WAV_DIR = os.path.join(ROOT_PATH, "created")
 
-def get_model_dir(dataset,type=None,value=None):
+def get_model_dir(dataset,type=None,value=None,oversample = False):
+    if oversample == True:
+        return os.path.join(get_dataset_folder(dataset,type,value),"emobase2010","WC1128_JY")    
     return os.path.join(get_dataset_folder(dataset,type,value),"emobase2010","WC0802_JY")
 
 def get_dataset_folder(dataset,type=None,value=None):

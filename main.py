@@ -1,4 +1,6 @@
 import json
+from analyzer.grad_heatmap import GradientHeatmap
+from analyzer.opensmile_analyzer import OpenSmileAnalyzer
 from attack.fgsm import FgsmPickleMaker
 from smile.data_generator import DataGenerator
 from utils.logger import Logger
@@ -10,8 +12,20 @@ import gc
 
 
 
+# import numpy as np
+# import matplotlib.pyplot as plt
 
+# x = np.arange(10)
+# y_bot = np.linspace(30, 50, 10)
+# y_dif = np.linspace(10, 5, 10)
 
+# plt.bar(x, y_dif, bottom=y_bot)
+# plt.show()
+GradientHeatmap().process()
+analyzer = OpenSmileAnalyzer()
+analyzer.set_target_feature("pitch")
+analyzer.process("CREMA-D",["noisy","gradient"],[[10,5],[0.05,0.10,0.15]])
+# analyzer.process("CREMA-D",["noisy"],[[5,10]])
 exit(0)
 
 for i in range(1,4):
